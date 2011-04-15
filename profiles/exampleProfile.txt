@@ -1,0 +1,28 @@
+# This file is used as input for extensionsGen.py
+# It defines the target OpenGL version and lists the used extensions.
+
+# Lines beginning with '#' are comments
+
+# The 'version' keyword followed by a version number defines the target
+# OpenGL version:
+
+version 3.3 core
+
+# You have to define either 'core' or 'compatibility' as profile
+
+# This is the minimum version necessary to run the
+# application. OpenGL-drivers with a lower version will exit in an
+# error message. 
+
+# Extensions are declared with the 'extension' keyword
+# followed by the name of the extensions:
+
+extension ARB_debug_output optional
+extension EXT_texture_filter_anisotropic optional
+extension ARB_gpu_shader5 required
+
+# Extensions can be either optional or required.
+# Missing required extensions will result in the application exiting with an
+# error message.
+# Optional extensions will create the EXTGL_<extname> GLboolean fields
+# for checking if an extension is supported.

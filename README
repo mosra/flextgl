@@ -1,0 +1,38 @@
+ExtGL is an OpenGL Extension loader generator.
+
+It is written in Python and uses the Cheetah template engine for
+generating the source files.
+
+The generated source code will only work with the GLFW OpenGL
+framework at the moment. This is because this is used for extension
+checking and loading.
+
+It should be relatively simple to create a new Cheetah template for
+other frameworks or even languages, though.
+
+Try invoking ExtGL like this:
+
+$ python extensionGen.py -D generated profiles/exampleProfile.txt
+
+This will download the current OpenGL specification from opengl.org
+and generate the files "generated/ExtGL.h" and "generated/ExtGL.cpp".
+
+profile/exampleProfile.txt defines the target OpenGL version & profile
+as well as a list of desired extensions. Take a look at the file for
+the syntax. I have also defined a few other profile files which might
+be useful in the profile directory. 
+
+ExtGL needs Python 2.x. Python 3 won't work. This is because of
+Cheetah. So you may need to call 'python2' instead of 'python' if you
+are using Arch Linux, for instance.
+
+You can call 'python extensionGen.py -h' a complete list of
+command-line options.
+
+Now all you have to do is to include ExtGL.h instead of the usual
+GL/gl.h and invoke the function init_opengl() after OpenGL context
+creation. This will initialize all functions.
+
+To get more information on how ExtGL's initialization mechanism work,
+I suggest taking a look at the generated ExtGL.cpp. There isn't really
+a lot of complex stuff going on actually.
