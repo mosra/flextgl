@@ -17,10 +17,27 @@ int main ()
     // Initialize GLFW
     glfwInit();
 
-    // You can use the EXTGL_*_VERSION macros to define the OpenGL version
+    // The EXTGL_*_VERSION macro define the minor and major version selected 
+    // in the profile file.
+
+    cout << "We want OpenGL " 
+         << EXTGL_MAJOR_VERSION << "." << EXTGL_MINOR_VERSION << " "
+         << (EXTGL_CORE_PROFILE?"core":"compatibility")
+         << endl;
+    
+    // EXTGL_CORE_PROFILE tells us if this is core or compatibility.
+
+    GLuint profile;
+    if (EXTGL_CORE_PROFILE) {
+      profile = GLFW_OPENGL_CORE_PROFILE;
+    } else {
+      profile = GLFW_OPENGL_COMPAT_PROFILE;
+    }
+
+    // We can use this to setup the desired OpenGL version in GLFW
     glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR, EXTGL_MAJOR_VERSION);
     glfwOpenWindowHint(GLFW_OPENGL_VERSION_MINOR, EXTGL_MINOR_VERSION);
-    glfwOpenWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwOpenWindowHint(GLFW_OPENGL_PROFILE, profile);
 
     // Create window and OpenGL context
     GLint success = glfwOpenWindow(800, 600, 0,0,0,0,0,0, GLFW_WINDOW);
@@ -31,6 +48,8 @@ int main ()
         return 1;
     }
 
+    cout << "OpenGL context created successfully" << endl;
+    
     // Call ExtGL's init_opengl() function.
 
     if (!init_opengl()) {
@@ -38,6 +57,8 @@ int main ()
         glfwTerminate();
         return 1;
     }
+    
+    cout << "OpenGL functions and extensions loaded successfully" << endl;
 
     // Let's test if our optional extensions are supported:
 
