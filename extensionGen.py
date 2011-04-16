@@ -259,6 +259,9 @@ def parse_enums(categories):
             match = enumpattern.match(line)
 
             enumname = match.group(1)
+
+            # There are sometimes 0xffffffffffff... enums defined
+            # To handle those, we truncate enum values to 32 bit.
             enumvalue = int(int(match.group(2), 0) & 0xffffffff)
 
             current_enums[enumname] = enumvalue
