@@ -20,18 +20,19 @@ and generate the files "generated/ExtGL.h" and "generated/ExtGL.cpp".
 profile/exampleProfile.txt defines the target OpenGL version & profile
 as well as a list of desired extensions. Take a look at the file for
 the syntax. I have also defined a few other profile files which might
-be useful in the profile directory. 
+be useful in the profile directory.
 
 ExtGL needs Python 2.x. Python 3 won't work. This is because of
 Cheetah. So you may need to call 'python2' instead of 'python' if you
 are using Arch Linux, for instance.
 
-You can call 'python extensionGen.py -h' a complete list of
+You can call 'python extensionGen.py -h' for a complete list of
 command-line options.
 
-Now all you have to do is to include ExtGL.h instead of the usual
-GL/gl.h and invoke the function init_opengl() after OpenGL context
-creation. This will initialize all functions.
+Now you have to compile and link ExtGL.cpp to your application and
+include ExtGL.h instead of the usual gl.h. After that, all you still
+have to do is call init_opengl() after OpenGL context creation. This
+will initialize all function stubs.
 
 To get more information on how ExtGL's initialization mechanism work,
 I suggest taking a look at the generated ExtGL.cpp. There isn't really

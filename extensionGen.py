@@ -228,7 +228,7 @@ def parse_glspec(typemap, categories):
                 
 def parse_enums(categories):
     categorypattern = re.compile("(\w+)\s+enum:")
-    enumpattern = re.compile("\s*(\w+)\s+=\s+((0x)?[\da-fA-F]+)(ull)?")
+    enumpattern = re.compile("\s*(\w+)\s+=\s+((0x)?[\da-fA-F]+)")
     refenumpattern = re.compile("\s*(\w+)\s+=\s+GL_(\w+)")
     hexpattern = re.compile('0x([\da-fA-F]+)')
     usepattern = re.compile('\s*use (\w+)\s*(\w+)')
@@ -259,7 +259,7 @@ def parse_enums(categories):
             match = enumpattern.match(line)
 
             enumname = match.group(1)
-            enumvalue = int(match.group(2), 0)
+            enumvalue = int(int(match.group(2), 0) & 0xffffffff)
 
             current_enums[enumname] = enumvalue
         elif refenumpattern.match(line):
@@ -343,7 +343,7 @@ def find_longest_enum(enums):
 
 def resolve_promotions(version, categories, functions, enums, passthru):
     versionpattern = re.compile("/\* OpenGL (\d).(\d) also reuses entry points from these extensions: \*/")
-    extensionpattern = re.compile("/\* (\w+) \*/")
+    extensionpattern = re.compile("/\* (\w+)")
 
     target_version = (version.major, version.minor)
     active_version = None
