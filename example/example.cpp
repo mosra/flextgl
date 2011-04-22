@@ -1,6 +1,6 @@
 
 // Important: Include ExtGL before GLFW!
-#include "ExtGL.h"
+#include "flextGL.h"
 
 // Since GLU does not work with core OpenGL, we inhibit it's inclusion.
 #define GLFW_NO_GLU
@@ -17,26 +17,26 @@ int main ()
     // Initialize GLFW
     glfwInit();
 
-    // The EXTGL_*_VERSION macro define the minor and major version selected 
+    // The FLEXTGL_*_VERSION macro define the minor and major version selected 
     // in the profile file.
 
     cout << "We want OpenGL " 
-         << EXTGL_MAJOR_VERSION << "." << EXTGL_MINOR_VERSION << " "
-         << (EXTGL_CORE_PROFILE?"core":"compatibility")
+         << FLEXTGL_MAJOR_VERSION << "." << FLEXTGL_MINOR_VERSION << " "
+         << (FLEXTGL_CORE_PROFILE?"core":"compatibility")
          << endl;
     
-    // EXTGL_CORE_PROFILE tells us if this is core or compatibility.
+    // FLEXTGL_CORE_PROFILE tells us if this is core or compatibility.
 
     GLuint profile;
-    if (EXTGL_CORE_PROFILE) {
+    if (FLEXTGL_CORE_PROFILE) {
       profile = GLFW_OPENGL_CORE_PROFILE;
     } else {
       profile = GLFW_OPENGL_COMPAT_PROFILE;
     }
 
     // We can use this to setup the desired OpenGL version in GLFW
-    glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR, EXTGL_MAJOR_VERSION);
-    glfwOpenWindowHint(GLFW_OPENGL_VERSION_MINOR, EXTGL_MINOR_VERSION);
+    glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR, FLEXTGL_MAJOR_VERSION);
+    glfwOpenWindowHint(GLFW_OPENGL_VERSION_MINOR, FLEXTGL_MINOR_VERSION);
     glfwOpenWindowHint(GLFW_OPENGL_PROFILE, profile);
 
     // Create window and OpenGL context
@@ -62,7 +62,7 @@ int main ()
 
     // Let's test if our optional extensions are supported:
 
-    if (EXTGL_EXT_texture_filter_anisotropic) {
+    if (FLEXTGL_EXT_texture_filter_anisotropic) {
         cout << "EXT_texture_filter_anisotropic is supported." << endl;
     } else  {
         cout << "EXT_texture_filter_anisotropic is NOT supported." << endl;

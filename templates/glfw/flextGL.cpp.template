@@ -1,8 +1,8 @@
 // WARNING: This file was automatically generated
 // Do not edit.
 
-$('#include "%s.%s"' % ($options.outfilename, $options.headerext))
 #raw
+#include "flextGL.h"
 #include "GL/glfw.h"
 
 #include <iostream>
@@ -56,7 +56,7 @@ int init_opengl()
     }
 #else
     if (glfwExtensionSupported("GL_$(extension)")) {
-        EXTGL_$extension = GL_TRUE;
+        FLEXTGL_$extension = GL_TRUE;
     }
 #end if   
 #end for
@@ -82,7 +82,7 @@ void load_opengl_functions()
 // ----------------------- Extension flag definitions ---------------------- 
 #for $extension,$required in $extensions.iteritems()
 #if not $required
-int EXTGL_$extension = GL_FALSE;
+int FLEXTGL_$extension = GL_FALSE;
 #end if
 #end for
 

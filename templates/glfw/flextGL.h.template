@@ -94,14 +94,14 @@ GLAPI PFNGL$(function.name.upper())PROC glpf$function.name;
 
 int init_opengl();
 
-#define EXTGL_MAJOR_VERSION $(version.major)
-#define EXTGL_MINOR_VERSION $(version.minor)
-#define EXTGL_CORE_PROFILE $(1 if $version.core else 0)
+#define FLEXTGL_MAJOR_VERSION $(version.major)
+#define FLEXTGL_MINOR_VERSION $(version.minor)
+#define FLEXTGL_CORE_PROFILE $(1 if $version.core else 0)
 
 // ------------------ Flags for optional extensions ---------------- 
 #for $extension,$required in $extensions.iteritems()
 #if not $required
-extern int EXTGL_$extension;
+extern int FLEXTGL_$extension;
 #end if
 #end for
 

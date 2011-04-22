@@ -2,6 +2,7 @@ import urllib
 import re
 from optparse import OptionParser
 import os.path
+from glob import glob
 
 from Cheetah.Template import Template
 
@@ -11,21 +12,25 @@ if script_dir == "":
     script_dir = "."
 
 script_dir += os.sep
+spec_dir = script_dir + "spec" + os.sep
+
+if not os.path.exists(spec_dir):
+    os.makedirs(spec_dir)
 
 def download_spec():
     print ('Downloading gl.tm')
-    urllib.urlretrieve("http://www.opengl.org/registry/api/gl.tm", script_dir+"gl.tm")
+    urllib.urlretrieve("http://www.opengl.org/registry/api/gl.tm", spec_dir+"gl.tm")
     print ('Downloading gl.spec')
-    urllib.urlretrieve("http://www.opengl.org/registry/api/gl.spec", script_dir+"gl.spec")
+    urllib.urlretrieve("http://www.opengl.org/registry/api/gl.spec", spec_dir+"gl.spec")
     print ('Downloading enumext.spec')
-    urllib.urlretrieve("http://www.opengl.org/registry/api/enumext.spec", script_dir+"enumext.spec")
+    urllib.urlretrieve("http://www.opengl.org/registry/api/enumext.spec", spec_dir+"enumext.spec")
 
 
 commentpattern = re.compile("#.*")
 statementpattern = re.compile("([A-Za-z0-9_]+),\*,\*,\s*([A-Za-z0-9 \*_]+),*,*")
 
 def parse_typemap():
-    tmfile = open(script_dir+'gl.tm', 'r')
+    tmfile = open(spec_dir+'gl.tm', 'r')
     tm = {}
 
     line = ""
@@ -96,15 +101,11 @@ def parse_args():
     parser = OptionParser(usage='Usage: %prog [options] filename')
     parser.add_option("-d", "--download",
                       action="store_true", dest="download", default=False,
-                      help="Force downloading the spec files before parsing")
+                      help="Force (re-)downloading the spec files before parsing")
     parser.add_option("-D", "--outdir", dest="outdir", default='generated',
                       help="Output directory for generated source files")
-    parser.add_option("-n", "--outfilename", dest="outfilename", default='ExtGL',
-                      help="Filename for generated source files")
-    parser.add_option("-H", "--headerext", dest="headerext", default='h',
-                      help="File extension for generated header file")
-    parser.add_option("-C", "--sourceext", dest="sourceext", default='cpp',
-                      help="File extension for generated source file")
+    parser.add_option("-T", "--template", dest="template", default="glfw",
+                      help="The template set to use for file generation")
     options, args = parser.parse_args()
 
     if len(args) < 1:
@@ -154,7 +155,7 @@ def parse_glspec(typemap, categories):
     categorypattern = re.compile('\s*category\s+(\w+)')
     deprecatedpattern = re.compile('\s*deprecated\s+(\d)\.(\d)')
 
-    file = open(script_dir+'gl.spec', 'r')
+    file = open(spec_dir+'gl.spec', 'r')
     passthru = []
     functions = {}
 
@@ -233,7 +234,7 @@ def parse_enums(categories):
     hexpattern = re.compile('0x([\da-fA-F]+)')
     usepattern = re.compile('\s*use (\w+)\s*(\w+)')
 
-    file = open(script_dir+'enumext.spec', 'r')
+    file = open(spec_dir+'enumext.spec', 'r')
     lineno = 0
     enums = {}
     current_category = None
@@ -383,9 +384,9 @@ version, extensions = parse_input_file(file)
 
 categories = get_categories(extensions, version)
 
-if ((not os.path.exists(script_dir+"gl.spec")) or 
-    (not os.path.exists(script_dir+"gl.tm")) or
-    (not os.path.exists(script_dir+"enumext.spec"))):
+if ((not os.path.exists(spec_dir+"gl.spec")) or 
+    (not os.path.exists(spec_dir+"gl.tm")) or
+    (not os.path.exists(spec_dir+"enumext.spec"))):
     options.download = True
 
 if options.download:
@@ -420,22 +421,13 @@ template_namespace = {'passthru' : ''.join(passthru),
 if not os.path.exists(options.outdir):
     os.makedirs(options.outdir)
 
-header_template = Template(open(script_dir+'extGL_header_template.hh', 'r').read(), 
-                           template_namespace)
-source_template = Template(open(script_dir+'extGL_source_template.cc', 'r').read(), 
-                           template_namespace)
+def eval_template(template, outfile):
+    template = Template(open(template, 'r').read(), template_namespace)
+    f = open(outfile, 'w')
+    f.write(str(template))
+    f.close()
 
-header_file = open('%s/%s.%s' % (options.outdir , 
-                                 options.outfilename,
-                                 options.headerext), 
-                   'w')
-source_file = open('%s/%s.%s' % (options.outdir , 
-                                 options.outfilename,
-                                 options.sourceext), 
-                   'w')
-
-header_file.write(str(header_template))
-source_file.write(str(source_template))
-
-header_file.close()
-source_file.close()
+for template in glob('%stemplates/%s/*.template' % (script_dir,options.template)):
+    pattern = re.compile(".*/%s/(.*).template" % options.template)
+    outfile = "%s/%s" % (options.outdir, pattern.match(template).group(1))
+    eval_template(template, outfile)
