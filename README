@@ -103,5 +103,15 @@ At the moment, there are two template sets available:
   extensions.  It will  obviously only  work  with GLFW,  but is  well
   tested and the generated source code is very easy to understand.
 
+== Copyright =========================================================
+
+The "compatible"  template uses  a short code  snippet from  GLee  for
+procedure loading.
+
+GLee was  written by Ben Woodhouse  in 2009. You can  find the license
+file for GLee (2-clause BSD) in templates/compatible/GLEE_license.txt.
+
+
 
 (C) Thomas Weber, 2011
+
