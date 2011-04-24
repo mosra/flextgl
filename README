@@ -78,13 +78,23 @@ with Make.
 
 == Generated API =====================================================
 
-The generated API boils down to two things:
+The generated API boils down to a few things:
 
 int flextInit()
   Initializes the OpenGL functions after context creation. 
 
+FLEXT_MAJOR_VERSION
+  The OpenGL major version defined in the profile file.
+
+FLEXT_MINOR_VERSION
+  The OpenGL minor version defined in the profile file.
+
+FLEXT_CORE_PROFILE
+  Boolean variable.  Is GL_TRUE,  if the profile  file defined  a core
+  profile. 
+
 FLEXT_<extension-name>
-  Generated  global variable for  testing if  a specific  extension is
+  Generated global  variables for checking if a  specific extension is
   supported. 
 
 Take a look at the example program to see both in action.

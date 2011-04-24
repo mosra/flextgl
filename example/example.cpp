@@ -16,9 +16,9 @@ using std::endl;
 /* 
  * Helper function that properly initializes the GLFW window before opening.
  */
-int flextOpenGLFWWindow( int width, int height, 
-                         int redbits, int greenbits, int bluebits, int alphabits,
-                         int depthbits, int stencilbits, int mode )
+int openWindow( int width, int height, 
+                int redbits, int greenbits, int bluebits, int alphabits,
+                int depthbits, int stencilbits, int mode )
 {
     GLuint profile;
     if (FLEXT_CORE_PROFILE) {
@@ -61,7 +61,7 @@ int main ()
          << (FLEXT_CORE_PROFILE?"core":"compatibility")
          << endl;
     
-    if (!flextOpenGLFWWindow(800, 600, 0,0,0,0,0,0, GLFW_WINDOW)) {
+    if (!openWindow(800, 600, 0,0,0,0,0,0, GLFW_WINDOW)) {
         glfwTerminate();        
         return 1;
     }
