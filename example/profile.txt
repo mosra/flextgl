@@ -23,5 +23,5 @@ extension EXT_texture_filter_anisotropic optional
 # Extensions can be either optional or required.
 # Missing required extensions will result in the application exiting with an
 # error message.
-# Optional extensions will create the EXTGL_<extname> GLboolean fields
+# Optional extensions will create the FLEXTGL_<extname> GLboolean fields
 # for checking if an extension is supported.

@@ -1,4 +1,5 @@
 
+CFLAGS= -Igenerated
 LFLAGS= -lglfw -lGL
 
 all: example
@@ -6,16 +7,16 @@ all: example
 example: example.o flextGL.o
 	g++ $(LFLAGS) -o example example.o flextGL.o
 
-example.o: example.cpp flextGL.cpp
-	g++ -c example.cpp
+example.o: example.cpp generated/flextGL.cpp
+	g++ $(CFLAGS) -c example.cpp
 
-flextGL.o: flextGL.cpp
-	g++ -c flextGL.cpp
+flextGL.o: generated/flextGL.cpp
+	g++ $(CFLAGS) -c generated/flextGL.cpp
 
-flextGL.cpp: profile.txt
-	python2.7 ../flextGLgen.py -D . profile.txt
+generated/flextGL.cpp: profile.txt
+	python2.7 ../flextGLgen.py -D generated profile.txt
 
 clean:
 	rm -f *.o
-	rm -f flextGL.h flextGL.cpp
+	rm -rf generated
 	rm -f example
