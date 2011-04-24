@@ -104,7 +104,7 @@ def parse_args():
                       help="Force (re-)downloading the spec files before parsing")
     parser.add_option("-D", "--outdir", dest="outdir", default='generated',
                       help="Output directory for generated source files")
-    parser.add_option("-T", "--template", dest="template", default="glfw",
+    parser.add_option("-T", "--template", dest="template", default="compatible",
                       help="The template set to use for file generation")
     options, args = parser.parse_args()
 

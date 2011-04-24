@@ -90,13 +90,12 @@ GLAPI PFNGL$(function.name.upper())PROC glpf$function.name;
 
 
 // ------------------ Flags for optional extensions ---------------- 
+
 #for $extension,$required in $extensions.iteritems()
-#if not $required
 extern int FLEXT_$extension;
-#end if
 #end for
 
-int flextInit();
+int flextInit(void);
 
 #define FLEXT_MAJOR_VERSION $(version.major)
 #define FLEXT_MINOR_VERSION $(version.minor)

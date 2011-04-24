@@ -23,7 +23,7 @@ You need the following dependencies:
  * Cheetah template engine (cheetahtemplate.org)
 
 
-Source directory content:
+== Source tree =======================================================
 
 flextGLgen.py			
   The generator script.
@@ -46,6 +46,8 @@ spec/ (generated)
   This directory is  automatically created by the script  to store the
   downloaded OpenGL .spec files.
 
+
+== Usage ============================================================
 
 You create your  loader code by writing a profile  file and passing it
 to the script.
@@ -74,9 +76,32 @@ The  best  way  to work  with  flextGL  is  to  integrate it  in  your
 Build-system. The  example file  give a very  simple example  for that
 with Make.
 
-At the moment, there is only  the 'glfw' template, which uses the GLFW
-framework's functions  for loading and testing for  functions. This is
-also   the  default  at   the  moment.   I  will   try  to   create  a
-platform-independent template as soon as possible.
+== Generated API =====================================================
+
+The generated API boils down to two things:
+
+int flextInit()
+  Initializes the OpenGL functions after context creation. 
+
+FLEXT_<extension-name>
+  Generated  global variable for  testing if  a specific  extension is
+  supported. 
+
+Take a look at the example program to see both in action.
+
+== Templates =========================================================
+
+At the moment, there are two template sets available:
+
+'compatible':
+  This loads the extensions using a framework-agnostic method with WGL
+  AGL and GLX. This is  probably the sensible default for most people.
+  It has not been thoroughly tested yet, though.
+
+'glfw':
+  This  uses  GLFW's functions  for  loading  and  testing for  OpenGL
+  extensions.  It will  obviously only  work  with GLFW,  but is  well
+  tested and the generated source code is very easy to understand.
+
 
 (C) Thomas Weber, 2011

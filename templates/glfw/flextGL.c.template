@@ -5,26 +5,23 @@
 #include "flextGL.h"
 #include "GL/glfw.h"
 
-#include <iostream>
+#include <stdio.h>
 
-using std::cout;
-using std::cerr;
-using std::endl;
 #end raw
 
-void load_opengl_functions();
+void flextLoadOpenglFunctions();
 
-int init_opengl() 
+int flextInit() 
 {
-    load_opengl_functions();
+    flextLoadOpenglFunctions();
 
     int minor = glfwGetWindowParam(GLFW_OPENGL_VERSION_MINOR);
     int major = glfwGetWindowParam(GLFW_OPENGL_VERSION_MAJOR);
 
     if (major < $version.major || (major == $version.major && minor < $version.minor)) {
-        cerr << "Error: OpenGL version $(version.major).$(version.minor) not supported." << endl;
-        cerr << "       You version is " << major << "." << minor << "." << endl;
-        cerr << "       Try updating your graphics driver." << endl;
+        fprintf(stderr, "Error: OpenGL version $(version.major).$(version.minor) not supported.\n");
+        fprintf(stderr, "       Your version is %d.%d.\n", major, minor);
+        fprintf(stderr, "       Try updating your graphics driver.\n");
         return GL_FALSE;
     }
 
@@ -34,13 +31,13 @@ int init_opengl()
     glGetIntegerv(GL_CONTEXT_PROFILE_MASK, &profile);
 
 #if $version.core
-    if ((profile & GL_CONTEXT_CORE_PROFILE_BIT) == 0) {
-        cerr << "Error: This application requires a core profile" << endl;
+    if ((profile & GL_CONTEXT_CORE_PROFILE_BIT) == 0){ 
+        fprintf(stderr, "Error: This application requires a core profile\n");
         return GL_FALSE;
     }
 #elif $version.major >= 3 and $version.minor >= 2
     if ((profile & GL_CONTEXT_COMPATIBILITY_PROFILE_BIT) == 0) {
-        cerr << "Error: This application requires a compatiblity profile" << endl;
+        fprintf(stderr, "Error: This application requires a comptatibility profile\n");
         return GL_FALSE;
     }
 #end if
@@ -50,13 +47,13 @@ int init_opengl()
     
 #if $required:
     if (!glfwExtensionSupported("GL_$(extension)")) {
-        cerr << "Error: OpenGL extension $(extension) not supported." << endl;
-        cerr << "       Try updating your graphics driver." << endl;
+        fprintf(stderr, "Error: OpenGL extension $(extension) not supported.\n");
+        fprintf(stderr, "       Try updating your graphics driver.\n");
         return GL_FALSE;
     }
 #else
     if (glfwExtensionSupported("GL_$(extension)")) {
-        FLEXTGL_$extension = GL_TRUE;
+        FLEXT_$extension = GL_TRUE;
     }
 #end if   
 #end for
@@ -64,7 +61,7 @@ int init_opengl()
     return GL_TRUE;
 }
 
-void load_opengl_functions()
+void flextLoadOpenglFunctions()
 {
     // --- Function pointer loading
 #for $category in $categories
@@ -82,7 +79,7 @@ void load_opengl_functions()
 // ----------------------- Extension flag definitions ---------------------- 
 #for $extension,$required in $extensions.iteritems()
 #if not $required
-int FLEXTGL_$extension = GL_FALSE;
+int FLEXT_$extension = GL_FALSE;
 #end if
 #end for
 
