@@ -1,39 +1,82 @@
-ExtGL is an OpenGL Extension loader generator.
+______________________________________________________________________
+                      ______          __  ________ 
+                     / __/ /__  _  __/ /_/ ____/ / 
+                    / /_/ / _ \| |/_/ __/ / __/ /  
+                   / __/ /  __/>  </ /_/ /_/ / /___
+                  /_/ /_/\___/_/|_|\__/\____/_____/
+______________________________________________________________________
 
-It is written in Python and uses the Cheetah template engine for
-generating the source files.
 
-The generated source code will only work with the GLFW OpenGL
-framework at the moment. This is because this is used for extension
-checking and loading.
+flextGL is an OpenGL extension loader generator.
 
-It should be relatively simple to create a new Cheetah template for
-other frameworks or even languages, though.
+It is a bit different than other comparable systems:
 
-Try invoking ExtGL like this:
+ * Bindings directly generated from opengl.org .spec files
+ * Gives complete control over exposed version and extensions
+ * Can optionally export core-profile-only functions.
+ * Flexible python template system for source-generation
+ * Very 
 
-$ python extensionGen.py -D generated profiles/exampleProfile.txt
+You need the following dependencies:
 
-This will download the current OpenGL specification from opengl.org
-and generate the files "generated/ExtGL.h" and "generated/ExtGL.cpp".
+ * Python 2.7 (python.org)
+ * Cheetah template engine (cheetahtemplate.org)
 
-profile/exampleProfile.txt defines the target OpenGL version & profile
-as well as a list of desired extensions. Take a look at the file for
-the syntax. I have also defined a few other profile files which might
-be useful in the profile directory.
 
-ExtGL needs Python 2.x. Python 3 won't work. This is because of
-Cheetah. So you may need to call 'python2' instead of 'python' if you
-are using Arch Linux, for instance.
+Source directory content:
 
-You can call 'python extensionGen.py -h' for a complete list of
-command-line options.
+flextGLgen.py			
+  The generator script.
 
-Now you have to compile and link ExtGL.cpp to your application and
-include ExtGL.h instead of the usual gl.h. After that, all you still
-have to do is call init_opengl() after OpenGL context creation. This
-will initialize all function stubs.
+templates/
+  This sub-directories  in here  contain the different  template sets.
+  You can  add your own  template by simply  creating a new  folder in 
+  there.
 
-To get more information on how ExtGL's initialization mechanism work,
-I suggest taking a look at the generated ExtGL.cpp. There isn't really
-a lot of complex stuff going on actually.
+profiles/
+  Some example profile files to give  you an idea on how to write your 
+  own. 'profiles/exampleProfile.txt' contains a lot of comments to get
+  you up to speed.
+
+example/
+  A (very) small C++/GLFW example  on how to include flextGL into your 
+  project.
+   
+spec/ (generated)
+  This directory is  automatically created by the script  to store the
+  downloaded OpenGL .spec files.
+
+
+You create your  loader code by writing a profile  file and passing it
+to the script.
+
+Here is what a typical profile might look like:
+
+> version 3.3 core
+> extension EXT_texture_filter_anisotropic optional
+> extension ARB_tesselation_shader optional
+
+This  requests   an  OpenGL  core  profile  and   the  extensions  for
+anisotropic filtering and  tesselation shaders. Those extensions where
+requested  as 'optional'. This  means that  a missing  extension won't
+cause  an error.  Instead, the  programmer will  have to  check before
+using  it. This  can  be easily  done  by testing  a generated  global
+variable.
+
+The profile file is then passed to the script like this:
+
+$ python flextGLgen.py -D generated profile.txt
+
+This  will  create  the  requested  source  code and  put  it  in  the
+'generated' directory.
+
+The  best  way  to work  with  flextGL  is  to  integrate it  in  your
+Build-system. The  example file  give a very  simple example  for that
+with Make.
+
+At the moment, there is only  the 'glfw' template, which uses the GLFW
+framework's functions  for loading and testing for  functions. This is
+also   the  default  at   the  moment.   I  will   try  to   create  a
+platform-independent template as soon as possible.
+
+(C) Thomas Weber, 2011

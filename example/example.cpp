@@ -1,5 +1,5 @@
 
-// Important: Include ExtGL before GLFW!
+// Important: Include flextGL before GLFW!
 #include "flextGL.h"
 
 // Since GLU does not work with core OpenGL, we inhibit it's inclusion.
@@ -50,7 +50,7 @@ int main ()
 
     cout << "OpenGL context created successfully" << endl;
     
-    // Call ExtGL's init_opengl() function.
+    // Call flextGL's init_opengl() function.
 
     if (!init_opengl()) {
         // init_opengl failed. It will print it's own error message.
