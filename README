@@ -73,8 +73,7 @@ This  will  create  the  requested  source  code and  put  it  in  the
 'generated' directory.
 
 The  best  way  to work  with  flextGL  is  to  integrate it  in  your
-Build-system. The  example file  give a very  simple example  for that
-with Make.
+build-system. The example project demonstrates this for Make.
 
 == Generated API =====================================================
 
