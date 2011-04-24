@@ -96,7 +96,7 @@ FLEXT_<extension-name>
   Generated global  variables for checking if a  specific extension is
   supported. 
 
-Take a look at the example program to see both in action.
+Take a look at the example program to get an idea on how it's used.
 
 == Templates =========================================================
 
