@@ -1,4 +1,4 @@
-# This file is used as input for extensionsGen.py
+# This file is used as input for flextGLgen.py
 # It defines the targetted OpenGL version and lists the used extensions.
 
 version 3.3 core
