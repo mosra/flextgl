@@ -11,16 +11,33 @@
 #end raw
 
 void flextLoadOpenglFunctions(void);
-void * flextGetProcAddress(const char *extname);
+
+static void open_libgl(void);
+static void close_libgl(void);
+static void *get_proc(const char *proc);
 
 int flextInit(void) 
 {
+    open_libgl();
     flextLoadOpenglFunctions();
+    close_libgl();
 
     GLint minor, major;
 
+#if $version.major >= 3
     glGetIntegerv(GL_MAJOR_VERSION, &major);
     glGetIntegerv(GL_MINOR_VERSION, &minor);
+#else
+    if (!glGetString)
+		return GL_FALSE;
+	const char* p = (const char *) glGetString(GL_VERSION);
+	if (!p)
+		return GL_FALSE;
+	for (major = 0; *p >= '0' && *p <= '9'; p++)
+		major = 10 * major + *p - '0';
+	for (minor = 0, p++; *p >= '0' && *p <= '9'; p++)
+		minor = 10 * minor + *p - '0';
+#end if
 
     if (major < $version.major || (major == $version.major && minor < $version.minor)) {
         fprintf(stderr, "Error: OpenGL version $(version.major).$(version.minor) not supported.\n");
@@ -29,7 +46,7 @@ int flextInit(void)
         return GL_FALSE;
     }
 
-#if $version.major >= 3 and $version.minor >=2
+#if $version.major*10 + $version.minor >= 32
     GLint profile;
     
     glGetIntegerv(GL_CONTEXT_PROFILE_MASK, &profile);
@@ -50,7 +67,7 @@ int flextInit(void)
     GLubyte* extensions;
 
 #if $version.major < 3
-    extensions = glGetString(GL_EXTENSIONS);
+    extensions = strdup(glGetString(GL_EXTENSIONS));
 #else
     size_t size;
     FILE* memstream = open_memstream((char**)&extensions, &size);
@@ -79,9 +96,7 @@ int flextInit(void)
 #end for
     }
 
-#if $version.major >= 3
     free(extensions_backup);
-#end if
 
 #for $extension,$required in $extensions.iteritems()
     
@@ -107,7 +122,7 @@ void flextLoadOpenglFunctions(void)
     // $category
 
 #for $function in $functions[$category]
-    glpf$function.name = (PFNGL$(function.name.upper())PROC)flextGetProcAddress("gl$function.name");
+    glpf$function.name = (PFNGL$(function.name.upper())PROC)get_proc("gl$function.name");
 #end for
 #end if
 #end for
@@ -130,45 +145,90 @@ PFNGL$(function.name.upper())PROC glpf$(function.name) = NULL;
 
 #raw
 
-// ProcAddress loader taken from GLEE
+// get_proc from Slavomir Kaslev's gl3w.
 
-#ifdef WIN32
-	#define WIN32_LEAN_AND_MEAN
-	#include <windows.h>
-#elif defined(__APPLE__) || defined(__APPLE_CC__)
-    #define GL_GLEXT_LEGACY
-	#include <Carbon/Carbon.h>
-#else // GLX
-	#define __glxext_h_ /* prevent glxext.h from being included */
-	#define GLX_GLXEXT_PROTOTYPES
-	#include <GL/glx.h>
-#endif
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN 1
+#include <windows.h>
 
+static HMODULE libgl;
 
-void * flextGetProcAddress(const char *extname)
+static void open_libgl(void)
 {
-#ifdef WIN32
-	return (void*)wglGetProcAddress(extname);
-#elif defined(__APPLE__) || defined(__APPLE_CC__)
-    CFBundleRef bundle;
-    CFURLRef bundleURL = CFURLCreateWithFileSystemPath(kCFAllocatorDefault, CFSTR("/System/Library/Frameworks/OpenGL.framework"), kCFURLPOSIXPathStyle, true);
-
-    CFStringRef functionName = CFStringCreateWithCString(kCFAllocatorDefault, extname, kCFStringEncodingASCII);
-
-    void *function;
-
-    bundle = CFBundleCreate(kCFAllocatorDefault, bundleURL);
-    assert(bundle != NULL);
-
-    function = CFBundleGetFunctionPointerForName(bundle, functionName);
-
-    CFRelease(bundleURL);
-    CFRelease(functionName);
-    CFRelease(bundle);
-
-    return function;
-#else
-	return (void*)glXGetProcAddressARB((const GLubyte *)extname);
-#endif
+	libgl = LoadLibraryA("opengl32.dll");
 }
+
+static void close_libgl(void)
+{
+	FreeLibrary(libgl);
+}
+
+static void *get_proc(const char *proc)
+{
+	void *res;
+
+	res = wglGetProcAddress(proc);
+	if (!res)
+		res = GetProcAddress(libgl, proc);
+	return res;
+}
+#elif defined(__APPLE__) || defined(__APPLE_CC__)
+#include <Carbon/Carbon.h>
+
+CFBundleRef bundle;
+CFURLRef bundleURL;
+
+static void open_libgl(void)
+{
+	bundleURL = CFURLCreateWithFileSystemPath(kCFAllocatorDefault,
+		CFSTR("/System/Library/Frameworks/OpenGL.framework"),
+		kCFURLPOSIXPathStyle, true);
+
+	bundle = CFBundleCreate(kCFAllocatorDefault, bundleURL);
+	assert(bundle != NULL);
+}
+
+static void close_libgl(void)
+{
+	CFRelease(bundle);
+	CFRelease(bundleURL);
+}
+
+static void *get_proc(const char *proc)
+{
+	void *res;
+
+	CFStringRef procname = CFStringCreateWithCString(kCFAllocatorDefault, proc,
+		kCFStringEncodingASCII);
+	res = CFBundleGetFunctionPointerForName(bundle, procname);
+	CFRelease(procname);
+	return res;
+}
+#else
+#include <dlfcn.h>
+#include <GL/glx.h>
+
+static void *libgl;
+
+static void open_libgl(void)
+{
+	libgl = dlopen("libGL.so.1", RTLD_LAZY | RTLD_GLOBAL);
+}
+
+static void close_libgl(void)
+{
+	dlclose(libgl);
+}
+
+static void *get_proc(const char *proc)
+{
+	void *res;
+
+	res = glXGetProcAddress((const GLubyte *) proc);
+	if (!res)
+		res = dlsym(libgl, proc);
+	return res;
+}
+#endif
+
 #end raw

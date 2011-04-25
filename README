@@ -115,13 +115,9 @@ At the moment, there are two template sets available:
 
 == Copyright =========================================================
 
-The "compatible"  template uses  a short code  snippet from  GLee  for
-procedure loading.
-
-GLee was  written by Ben Woodhouse  in 2009. You can  find the license
-file for GLee (2-clause BSD) in templates/compatible/GLEE_license.txt.
-
-
+The  "compatible"  template uses  a few  code  snippets  from Slavomir
+Kaslev's  gl3w  OpenGL core  profile loader  for  portable  loading of
+procedures and checking minor/major version in OpenGL < 3.0.
 
 (C) Thomas Weber, 2011
     ginko (at) cg (dot) tuwien (dot) ac (dot) at

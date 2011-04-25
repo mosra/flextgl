@@ -12,7 +12,6 @@ using std::cout;
 using std::cerr;
 using std::endl;
 
-
 /* 
  * Helper function that properly initializes the GLFW window before opening.
  */
@@ -20,17 +19,24 @@ int openWindow( int width, int height,
                 int redbits, int greenbits, int bluebits, int alphabits,
                 int depthbits, int stencilbits, int mode )
 {
-    GLuint profile;
-    if (FLEXT_CORE_PROFILE) {
-      profile = GLFW_OPENGL_CORE_PROFILE;
-    } else {
-      profile = GLFW_OPENGL_COMPAT_PROFILE;
-    }
+    int version = FLEXT_MAJOR_VERSION * 10 + FLEXT_MINOR_VERSION;
 
     // We can use this to setup the desired OpenGL version in GLFW
     glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR, FLEXT_MAJOR_VERSION);
     glfwOpenWindowHint(GLFW_OPENGL_VERSION_MINOR, FLEXT_MINOR_VERSION);
-    glfwOpenWindowHint(GLFW_OPENGL_PROFILE, profile);
+
+    if (version >= 32) {
+        // OpenGL 3.2+ allow specification of profile
+
+        GLuint profile;
+        if (FLEXT_CORE_PROFILE) {
+            profile = GLFW_OPENGL_CORE_PROFILE;
+        } else {
+            profile = GLFW_OPENGL_COMPAT_PROFILE;
+        }
+
+        glfwOpenWindowHint(GLFW_OPENGL_PROFILE, profile);
+    }
 
     // Create window and OpenGL context
     GLint success = glfwOpenWindow(width, height,
@@ -68,6 +74,8 @@ int main ()
 
     cout << "OpenGL window created successfully" << endl;    
     cout << "OpenGL functions and extensions loaded successfully" << endl;
+
+    cout << "OpenGL version: " << glGetString(GL_VERSION) << endl;
 
     // Let's test if our optional extensions are supported:
 

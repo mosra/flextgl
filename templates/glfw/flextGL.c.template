@@ -25,7 +25,7 @@ int flextInit()
         return GL_FALSE;
     }
 
-#if $version.major >= 3 and $version.minor >=2
+#if $version.major*10 + $version.minor >= 32
     GLint profile;
     
     glGetIntegerv(GL_CONTEXT_PROFILE_MASK, &profile);
@@ -35,7 +35,7 @@ int flextInit()
         fprintf(stderr, "Error: This application requires a core profile\n");
         return GL_FALSE;
     }
-#elif $version.major >= 3 and $version.minor >= 2
+#else
     if ((profile & GL_CONTEXT_COMPATIBILITY_PROFILE_BIT) == 0) {
         fprintf(stderr, "Error: This application requires a comptatibility profile\n");
         return GL_FALSE;
