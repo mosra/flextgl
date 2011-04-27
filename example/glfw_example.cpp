@@ -48,7 +48,7 @@ int openWindow( int width, int height,
         return GL_FALSE;
     }
     
-    // Call flext's init_opengl() function.
+    // Call flext's init function.
     success = flextInit();
 
     return success;

@@ -109,10 +109,12 @@ def parse_args():
     options, args = parser.parse_args()
 
     if len(args) < 1:
-        parser.error('You need to specify an input file')
+        parser.print_help()
+        exit(0)
     elif len(args) > 1:
-        parser.error('You may not specify more than one input file')
-    
+        parser.print_help()
+        exit(1)
+
     return options, args[0]
 
 

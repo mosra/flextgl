@@ -1,7 +1,7 @@
 ______________________________________________________________________
                       ______          __  ________ 
                      / __/ /__  _  __/ /_/ ____/ / 
-                    / /_/ / _ \| |/_/ __/ / __/ /  
+                    / /_/ / _ \| |/ / __/ / __/ /  
                    / __/ /  __/>  </ /_/ /_/ / /___
                   /_/ /_/\___/_/|_|\__/\____/_____/
 ______________________________________________________________________
@@ -20,7 +20,7 @@ It is a bit different than other comparable systems:
 
 You will need the following dependencies:
 
- * Python 2.7 (python.org)
+ * Python 2.x (python.org)
  * Cheetah template engine (cheetahtemplate.org)
 
 
@@ -30,7 +30,7 @@ flextGLgen.py
   The generator script.
 
 templates/
-  This sub-directories  in here  contain the different  template sets.
+  The  sub-directories  in here  contain the different  template sets.
   You can  add your own  template by simply  creating a new  folder in 
   there.
 
@@ -105,7 +105,7 @@ At the moment, there are two template sets available:
 
 'compatible':
   This loads the extensions using a framework-agnostic method with WGL
-  AGL and GLX. This is  probably the sensible default for most people.
+  AGL or GLX. This  is  probably the sensible default for most people.
   It has not been thoroughly tested yet, though.
 
 'glfw':
