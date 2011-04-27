@@ -263,7 +263,7 @@ def parse_enums(categories):
 
             # There are sometimes 0xffffffffffff... enums defined
             # To handle those, we truncate enum values to 32 bit.
-            enumvalue = int(int(match.group(2), 0) & 0xffffffff)
+            enumvalue = int(int(match.group(2), 0) & 0x7fffffff)
 
             current_enums[enumname] = enumvalue
         elif refenumpattern.match(line):
@@ -295,7 +295,7 @@ def parse_enums(categories):
             
                 
                 
-                if not isinstance(realvalue, int):
+                if not isinstance(realvalue, int) and not isinstance(realvalue, long):
                     # let's try brute force
                     for category2 in enums.itervalues():
                         for name2, value2 in category2.iteritems():
@@ -304,7 +304,7 @@ def parse_enums(categories):
                             if name2 == value and isinstance(value2, int):
                                 realvalue = value2
 
-                if not isinstance(realvalue, int):
+                if not isinstance(realvalue, int) and not isinstance(realvalue, long):
                     print("Could not resolve reference for enum %s = %s" % (name,value))
 
                 category[name] = realvalue
@@ -421,13 +421,12 @@ template_namespace = {'passthru' : ''.join(passthru),
 if not os.path.exists(options.outdir):
     os.makedirs(options.outdir)
 
-def eval_template(template, outfile):
-    template = Template(open(template, 'r').read(), template_namespace)
+for template_path in glob('%stemplates/%s/*.template' % (script_dir,options.template)):
+    template_file = os.path.split(template_path)[1]
+    pattern = re.compile("(.*).template")
+    outfile = "%s/%s" % (options.outdir, pattern.match(template_file).group(1))
+    
+    template = Template(open(template_path, 'r').read(), template_namespace)
     f = open(outfile, 'w')
     f.write(str(template))
     f.close()
-
-for template in glob('%stemplates/%s/*.template' % (script_dir,options.template)):
-    pattern = re.compile(".*/%s/(.*).template" % options.template)
-    outfile = "%s/%s" % (options.outdir, pattern.match(template).group(1))
-    eval_template(template, outfile)

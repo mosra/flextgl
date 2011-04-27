@@ -15,6 +15,7 @@ void flextLoadOpenglFunctions(void);
 static void open_libgl(void);
 static void close_libgl(void);
 static void *get_proc(const char *proc);
+static void add_extension(const char* extension);
 
 int flextInit(void) 
 {
@@ -64,39 +65,34 @@ int flextInit(void)
 #end if
 #end if
 
-    GLubyte* extensions;
-
 #if $version.major < 3
-    extensions = strdup(glGetString(GL_EXTENSIONS));
-#else
-    size_t size;
-    FILE* memstream = open_memstream((char**)&extensions, &size);
+    GLubyte* extensions = strdup(glGetString(GL_EXTENSIONS));
 
+    GLubyte *i = extensions,;
+    while (*i != '\0') {
+        GLubyte *ext = i;
+	while (*i != ' ' && *i != '\0') {
+	    ++i;
+	}
+	while (*i == ' ') {
+	    *i = '\0';
+	    ++i;
+	}
+	
+	add_extension(ext);
+    }
+
+    free(extensions);
+#else
     GLint num_extensions;
     glGetIntegerv(GL_NUM_EXTENSIONS, &num_extensions);
     
     int i;
 
     for (i = 0; i < num_extensions; i++) {
-        fprintf(memstream, "%s ", glGetStringi(GL_EXTENSIONS, i));
+        add_extension(glGetStringi(GL_EXTENSIONS, i));
     }
-
-    fclose(memstream);
 #end if
-
-    GLubyte* extensions_backup = extensions;
-
-    while (extensions != NULL) {
-        char* ext = strsep((char**)&extensions, " ");
-
-#for $extension,$required in $extensions.iteritems()
-        if (strcmp("GL_$(extension)", ext) == 0) {
-            FLEXT_$extension = GL_TRUE;
-        }
-#end for
-    }
-
-    free(extensions_backup);
 
 #for $extension,$required in $extensions.iteritems()
     
@@ -111,6 +107,7 @@ int flextInit(void)
 
     return GL_TRUE;
 }
+
 
 
 void flextLoadOpenglFunctions(void)
@@ -144,6 +141,15 @@ PFNGL$(function.name.upper())PROC glpf$(function.name) = NULL;
 #end for
 
 #raw
+
+static void add_extension(const char* extension)
+{
+#for $extension,$required in $extensions.iteritems()
+    if (strcmp("GL_$(extension)", ext) == 0) {
+        FLEXT_$extension = GL_TRUE;
+    }
+#end for
+}
 
 // get_proc from Slavomir Kaslev's gl3w.
 
