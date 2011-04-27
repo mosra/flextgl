@@ -47,22 +47,15 @@ int flextInit(void)
         return GL_FALSE;
     }
 
-#if $version.major*10 + $version.minor >= 32
+#if $version.major*10 + $version.minor >= 32 and not $version.core
     GLint profile;
     
     glGetIntegerv(GL_CONTEXT_PROFILE_MASK, &profile);
 
-#if $version.core
-    if ((profile & GL_CONTEXT_CORE_PROFILE_BIT) == 0){ 
-        fprintf(stderr, "Error: This application requires a core profile\n");
-        return GL_FALSE;
-    }
-#elif $version.major >= 3 and $version.minor >= 2
     if ((profile & GL_CONTEXT_COMPATIBILITY_PROFILE_BIT) == 0) {
         fprintf(stderr, "Error: This application requires a compatibility profile\n");
         return GL_FALSE;
     }
-#end if
 #end if
 
 #if $version.major < 3

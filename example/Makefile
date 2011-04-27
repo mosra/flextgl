@@ -1,14 +1,21 @@
 
 CFLAGS= -Igenerated
-LFLAGS= -lglfw -lGL
+LFLAGS= -lGL
 
-all: example
+all: glfw_example glut_example
 
-example: example.o flextGL.o
-	g++ $(LFLAGS) -o example example.o flextGL.o
+glfw_example: glfw_example.o flextGL.o
+	g++ $(LFLAGS) -lglfw -o glfw_example glfw_example.o flextGL.o
 
-example.o: example.cpp generated/flextGL.c
-	g++ $(CFLAGS) -c example.cpp
+glfw_example.o: glfw_example.cpp generated/flextGL.c
+	g++ $(CFLAGS) -c glfw_example.cpp
+
+
+glut_example: glut_example.o flextGL.o
+	gcc $(LFLAGS) -lglut -o glut_example glut_example.o flextGL.o
+
+glut_example.o: glut_example.c generated/flextGL.c
+	gcc $(CFLAGS) -c glut_example.c
 
 flextGL.o: generated/flextGL.c
 	gcc $(CFLAGS) -c generated/flextGL.c
@@ -19,4 +26,4 @@ generated/flextGL.c: profile.txt
 clean:
 	rm -f *.o
 	rm -rf generated
-	rm -f example
+	rm -f glfw_example glut_example
