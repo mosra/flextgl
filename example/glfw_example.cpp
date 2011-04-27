@@ -57,7 +57,10 @@ int openWindow( int width, int height,
 int main ()
 {
     // Initialize GLFW
-    glfwInit();
+    if (!glfwInit()) {
+        cerr << "Failed to initialize GLFW!" << endl;
+        return 1;
+    }
 
     // The FLEXT_*_VERSION macro define the minor and major version selected 
     // in the profile file.
