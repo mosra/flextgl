@@ -6,7 +6,7 @@
 # The 'version' keyword followed by a version number defines the target
 # OpenGL version:
 
-version 3.3 core
+version 2.1 compatibility
 
 # You have to define either 'core' or 'compatibility' as profile
 

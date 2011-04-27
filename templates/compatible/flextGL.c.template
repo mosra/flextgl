@@ -59,7 +59,7 @@ int flextInit(void)
     }
 #elif $version.major >= 3 and $version.minor >= 2
     if ((profile & GL_CONTEXT_COMPATIBILITY_PROFILE_BIT) == 0) {
-        fprintf(stderr, "Error: This application requires a comptatibility profile\n");
+        fprintf(stderr, "Error: This application requires a compatibility profile\n");
         return GL_FALSE;
     }
 #end if
@@ -68,7 +68,7 @@ int flextInit(void)
 #if $version.major < 3
     GLubyte* extensions = strdup(glGetString(GL_EXTENSIONS));
 
-    GLubyte *i = extensions,;
+    GLubyte *i = extensions;
     while (*i != '\0') {
         GLubyte *ext = i;
 	while (*i != ' ' && *i != '\0') {
@@ -140,16 +140,16 @@ PFNGL$(function.name.upper())PROC glpf$(function.name) = NULL;
 #end if
 #end for
 
-#raw
-
 static void add_extension(const char* extension)
 {
 #for $extension,$required in $extensions.iteritems()
-    if (strcmp("GL_$(extension)", ext) == 0) {
-        FLEXT_$extension = GL_TRUE;
+    if (strcmp("GL_$(extension)", extension) == 0) {
+        FLEXT_$(extension) = GL_TRUE;
     }
 #end for
 }
+
+#raw
 
 // get_proc from Slavomir Kaslev's gl3w.
 
