@@ -52,11 +52,9 @@ $passthru
 
 //----------------------------------- ENUMS ---------------------------------//
 
-enum extGLenum {
 #for $enum,$value in $enums
-    GL_$enum $(' ' * ($longest_enum-len($enum))) = $hex($value),
+#define GL_$enum $(' ' * ($longest_enum-len($enum))) ${"0x%x" % ($value)}
 #end for
-};
 //------------------------ FUNCTION PROTOTYPES -----------------------------//
 
 #for $category in $categories

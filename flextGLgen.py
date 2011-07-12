@@ -3,6 +3,7 @@ import re
 from optparse import OptionParser
 import os.path
 from glob import glob
+import numbers
 
 from Cheetah.Template import Template
 
@@ -265,7 +266,7 @@ def parse_enums(categories):
 
             # There are sometimes 0xffffffffffff... enums defined
             # To handle those, we truncate enum values to 32 bit.
-            enumvalue = int(int(match.group(2), 0) & 0x7fffffff)
+            enumvalue = long(long(match.group(2), 0) & 0x7fffffffffffffff)
 
             current_enums[enumname] = enumvalue
         elif refenumpattern.match(line):
@@ -297,17 +298,18 @@ def parse_enums(categories):
             
                 
                 
-                if not isinstance(realvalue, int) and not isinstance(realvalue, long):
+                if not isinstance(realvalue, numbers.Integral):
                     # let's try brute force
                     for category2 in enums.itervalues():
                         for name2, value2 in category2.iteritems():
-                            if name2 == name and isinstance(value2, int):
+                            if name2 == name and isinstance(value2, numbers.Integral):
                                 realvalue = value2
-                            if name2 == value and isinstance(value2, int):
+                            if name2 == value and isinstance(value2, numbers.Integral):
                                 realvalue = value2
 
-                if not isinstance(realvalue, int) and not isinstance(realvalue, long):
-                    print("Could not resolve reference for enum %s = %s" % (name,value))
+                if not isinstance(realvalue, numbers.Integral):
+                    print("Could not resolve reference for enum %s = %s (%s)" % (name,value,realvalue))
+                    exit(1)
 
                 category[name] = realvalue
 

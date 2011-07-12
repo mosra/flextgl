@@ -21,7 +21,7 @@ flextGL.o: generated/flextGL.c
 	gcc $(CFLAGS) -c generated/flextGL.c
 
 generated/flextGL.c: profile.txt
-	python2 ../flextGLgen.py -T compatible -D generated profile.txt
+	python2.7 ../flextGLgen.py -T compatible -D generated profile.txt
 
 clean:
 	rm -f *.o
