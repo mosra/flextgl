@@ -2,7 +2,7 @@
 // Do not edit.
 
 #raw
-#include "flextGL.h"
+#include <opengl.h>
 
 #include <stdio.h>
 #include <string.h>
@@ -10,14 +10,14 @@
 
 #end raw
 
-void flextLoadOpenglFunctions(void);
+void loadOpenglFunctions(void);
 
 static void open_libgl(void);
 static void close_libgl(void);
 static void *get_proc(const char *proc);
 static void add_extension(const char* extension);
 
-int flextInit(void) 
+int importOpenGL(void) 
 {
     GLint minor, major;
     GLint profile;
@@ -25,7 +25,7 @@ int flextInit(void)
     int i;
 
     open_libgl();
-    flextLoadOpenglFunctions();
+    loadOpenglFunctions();
     close_libgl();
 
 
@@ -90,7 +90,7 @@ int flextInit(void)
 #for $extension,$required in $extensions.iteritems()
     
 #if $required:
-    if (!FLEXT_$extension) {
+    if (!GL_$extension) {
         fprintf(stderr, "Error: OpenGL extension $(extension) not supported.\n");
         fprintf(stderr, "       Try updating your graphics driver.\n");
         return GL_FALSE;
@@ -103,7 +103,7 @@ int flextInit(void)
 
 
 
-void flextLoadOpenglFunctions(void)
+void loadOpenglFunctions(void)
 {
     // --- Function pointer loading
 #for $category in $categories
@@ -120,7 +120,7 @@ void flextLoadOpenglFunctions(void)
 
 // ----------------------- Extension flag definitions ---------------------- 
 #for $extension,$required in $extensions.iteritems()
-int FLEXT_$extension = GL_FALSE;
+int GL_$extension = GL_FALSE;
 #end for
 
 // ----------------- Function pointer definitions ----------------
@@ -137,7 +137,7 @@ static void add_extension(const char* extension)
 {
 #for $extension,$required in $extensions.iteritems()
     if (strcmp("GL_$(extension)", extension) == 0) {
-        FLEXT_$(extension) = GL_TRUE;
+        GL_$(extension) = GL_TRUE;
     }
 #end for
 }
