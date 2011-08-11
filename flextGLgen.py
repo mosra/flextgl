@@ -350,7 +350,7 @@ def find_longest_enum(enums):
     return longest
 
 def resolve_promotions(version, categories, functions, enums, passthru):
-    versionpattern = re.compile("/\* OpenGL (\d).(\d) also reuses entry points from these extensions: \*/")
+    versionpattern = re.compile("/\* OpenGL (\d).(\d) (also )?reuses entry points from these extensions: \*/")
     extensionpattern = re.compile("/\* (\w+)")
 
     target_version = (version.major, version.minor)
