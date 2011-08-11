@@ -20,9 +20,15 @@ static void add_extension(const char* extension);
 int flextInit(void) 
 {
     GLint minor, major;
+#if $version.major >= 3
     GLint profile;
     GLint num_extensions;
     int i;
+#else
+    const char* p;
+    GLubyte* extensions;
+    GLubyte* i;
+#end if
 
     open_libgl();
     flextLoadOpenglFunctions();
@@ -33,15 +39,13 @@ int flextInit(void)
     glGetIntegerv(GL_MAJOR_VERSION, &major);
     glGetIntegerv(GL_MINOR_VERSION, &minor);
 #else
-    if (!glGetString)
-		return GL_FALSE;
-	const char* p = (const char *) glGetString(GL_VERSION);
-	if (!p)
-		return GL_FALSE;
-	for (major = 0; *p >= '0' && *p <= '9'; p++)
-		major = 10 * major + *p - '0';
-	for (minor = 0, p++; *p >= '0' && *p <= '9'; p++)
-		minor = 10 * minor + *p - '0';
+    p = (const char *) glGetString(GL_VERSION);
+    if (!p)
+        return GL_FALSE;
+    for (major = 0; *p >= '0' && *p <= '9'; p++)
+        major = 10 * major + *p - '0';
+    for (minor = 0, p++; *p >= '0' && *p <= '9'; p++)
+        minor = 10 * minor + *p - '0';
 #end if
 
     if (major < $version.major || (major == $version.major && minor < $version.minor)) {
@@ -62,20 +66,20 @@ int flextInit(void)
 #end if
 
 #if $version.major < 3
-    GLubyte* extensions = strdup(glGetString(GL_EXTENSIONS));
+    extensions = strdup(glGetString(GL_EXTENSIONS));
+    i = extensions;
 
-    GLubyte *i = extensions;
     while (*i != '\0') {
         GLubyte *ext = i;
-	while (*i != ' ' && *i != '\0') {
-	    ++i;
-	}
-	while (*i == ' ') {
-	    *i = '\0';
-	    ++i;
-	}
-	
-	add_extension(ext);
+        while (*i != ' ' && *i != '\0') {
+            ++i;
+        }
+        while (*i == ' ') {
+            *i = '\0';
+            ++i;
+        }
+
+        add_extension(ext);
     }
 
     free(extensions);
@@ -88,7 +92,6 @@ int flextInit(void)
 #end if
 
 #for $extension,$required in $extensions.iteritems()
-    
 #if $required:
     if (!FLEXT_$extension) {
         fprintf(stderr, "Error: OpenGL extension $(extension) not supported.\n");
@@ -154,22 +157,22 @@ static HMODULE libgl;
 
 static void open_libgl(void)
 {
-	libgl = LoadLibraryA("opengl32.dll");
+    libgl = LoadLibraryA("opengl32.dll");
 }
 
 static void close_libgl(void)
 {
-	FreeLibrary(libgl);
+    FreeLibrary(libgl);
 }
 
 static void *get_proc(const char *proc)
 {
-	void *res;
+    void *res;
 
-	res = wglGetProcAddress(proc);
-	if (!res)
-		res = GetProcAddress(libgl, proc);
-	return res;
+    res = wglGetProcAddress(proc);
+    if (!res)
+        res = GetProcAddress(libgl, proc);
+    return res;
 }
 #elif defined(__APPLE__) || defined(__APPLE_CC__)
 #include <Carbon/Carbon.h>
@@ -179,29 +182,29 @@ CFURLRef bundleURL;
 
 static void open_libgl(void)
 {
-	bundleURL = CFURLCreateWithFileSystemPath(kCFAllocatorDefault,
-		CFSTR("/System/Library/Frameworks/OpenGL.framework"),
-		kCFURLPOSIXPathStyle, true);
+    bundleURL = CFURLCreateWithFileSystemPath(kCFAllocatorDefault,
+                CFSTR("/System/Library/Frameworks/OpenGL.framework"),
+                kCFURLPOSIXPathStyle, true);
 
-	bundle = CFBundleCreate(kCFAllocatorDefault, bundleURL);
-	assert(bundle != NULL);
+    bundle = CFBundleCreate(kCFAllocatorDefault, bundleURL);
+    assert(bundle != NULL);
 }
 
 static void close_libgl(void)
 {
-	CFRelease(bundle);
-	CFRelease(bundleURL);
+    CFRelease(bundle);
+    CFRelease(bundleURL);
 }
 
 static void *get_proc(const char *proc)
 {
-	void *res;
+    void *res;
 
-	CFStringRef procname = CFStringCreateWithCString(kCFAllocatorDefault, proc,
-		kCFStringEncodingASCII);
-	res = CFBundleGetFunctionPointerForName(bundle, procname);
-	CFRelease(procname);
-	return res;
+    CFStringRef procname = CFStringCreateWithCString(kCFAllocatorDefault, proc,
+                kCFStringEncodingASCII);
+    res = CFBundleGetFunctionPointerForName(bundle, procname);
+    CFRelease(procname);
+    return res;
 }
 #else
 #include <dlfcn.h>
@@ -211,22 +214,22 @@ static void *libgl;
 
 static void open_libgl(void)
 {
-	libgl = dlopen("libGL.so.1", RTLD_LAZY | RTLD_GLOBAL);
+    libgl = dlopen("libGL.so.1", RTLD_LAZY | RTLD_GLOBAL);
 }
 
 static void close_libgl(void)
 {
-	dlclose(libgl);
+    dlclose(libgl);
 }
 
 static void *get_proc(const char *proc)
 {
-	void *res;
+    void *res;
 
-	res = glXGetProcAddress((const GLubyte *) proc);
-	if (!res)
-		res = dlsym(libgl, proc);
-	return res;
+    res = glXGetProcAddress((const GLubyte *) proc);
+    if (!res)
+        res = dlsym(libgl, proc);
+    return res;
 }
 #endif
 
