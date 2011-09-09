@@ -13,10 +13,13 @@ void flextLoadOpenglFunctions();
 
 int flextInit() 
 {
-    flextLoadOpenglFunctions();
-
+#if $version.major*10 + $version.minor >= 32 and not $version.core
+    GLint profile;
+#end if
     int minor = glfwGetWindowParam(GLFW_OPENGL_VERSION_MINOR);
     int major = glfwGetWindowParam(GLFW_OPENGL_VERSION_MAJOR);
+
+    flextLoadOpenglFunctions();
 
     if (major < $version.major || (major == $version.major && minor < $version.minor)) {
         fprintf(stderr, "Error: OpenGL version $(version.major).$(version.minor) not supported.\n");
@@ -26,8 +29,6 @@ int flextInit()
     }
 
 #if $version.major*10 + $version.minor >= 32 and not $version.core
-    GLint profile;
-    
     glGetIntegerv(GL_CONTEXT_PROFILE_MASK, &profile);
 
     if ((profile & GL_CONTEXT_COMPATIBILITY_PROFILE_BIT) == 0) {
