@@ -40,8 +40,8 @@ Source tree
   > you up to speed.
 
 * `example/`
-  > A (very) small C++/GLFW example  on how to include flextGL into your 
-  > project.
+  > A small C++/GLFW example  on how to include flextGL into your 
+  > project using CMake.
    
 * `spec/` (generated)
   > This directory is  automatically created by the script  to store the
