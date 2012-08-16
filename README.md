@@ -15,8 +15,13 @@ It is a bit different than other comparable systems:
 You will need the following dependencies:
 
  * [Python 3.2](http://python.org)
- * [wheezy.template](http://packages.python.org/wheezy.template)
+ * [Wheezy Template](http://packages.python.org/wheezy.template)
 
+### What's new?
+
+This new version is a major rewrite that should make the spec parser quite a bit more manageable.
+
+Added support for Python 3 and replaced Cheetah with Wheezy for templating.
 
 Source tree
 -----------
