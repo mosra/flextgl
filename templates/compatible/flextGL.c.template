@@ -1,61 +1,70 @@
-// WARNING: This file was automatically generated
-// Do not edit.
+@require(passthru, functions, enums, options, version, extensions)
 
-#raw
 #include "flextGL.h"
+#include "GL/glfw.h"
 
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 
-#end raw
 
-void flextLoadOpenglFunctions(void);
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
+void flextLoadOpenGLFunctions(void);
 
 static void open_libgl(void);
 static void close_libgl(void);
 static void *get_proc(const char *proc);
 static void add_extension(const char* extension);
 
-int flextInit(void) 
+int flextInit(void)
 {
     GLint minor, major;
-#if $version.major >= 3
-    GLint profile;
+    @if version.major >= 3:
     GLint num_extensions;
     int i;
-#else
+    @else:
     const char* p;
     GLubyte* extensions;
     GLubyte* i;
-#end if
+    @end
+    @if version.int_value() >= 32 and not version.core:
+    GLint profile;
+    @end
 
     open_libgl();
-    flextLoadOpenglFunctions();
+    flextLoadOpenGLFunctions();
     close_libgl();
 
-
-#if $version.major >= 3
+    @if version.major >= 3:
     glGetIntegerv(GL_MAJOR_VERSION, &major);
     glGetIntegerv(GL_MINOR_VERSION, &minor);
-#else
+    @else:
     p = (const char *) glGetString(GL_VERSION);
-    if (!p)
+    if (p == NULL) {
         return GL_FALSE;
-    for (major = 0; *p >= '0' && *p <= '9'; p++)
-        major = 10 * major + *p - '0';
-    for (minor = 0, p++; *p >= '0' && *p <= '9'; p++)
-        minor = 10 * minor + *p - '0';
-#end if
+    }
 
-    if (major < $version.major || (major == $version.major && minor < $version.minor)) {
-        fprintf(stderr, "Error: OpenGL version $(version.major).$(version.minor) not supported.\n");
+    for (major = 0; *p >= '0' && *p <= '9'; p++) {
+        major = 10 * major + *p - '0';
+    }
+
+    for (minor = 0, p++; *p >= '0' && *p <= '9'; p++) {
+        minor = 10 * minor + *p - '0';
+    }
+    @end
+
+    if (10 * major + minor < @version.int_value()!s) {
+        fprintf(stderr, "Error: OpenGL version @version.major!s.@version.minor!s not supported.\n");
         fprintf(stderr, "       Your version is %d.%d.\n", major, minor);
         fprintf(stderr, "       Try updating your graphics driver.\n");
         return GL_FALSE;
     }
 
-#if $version.major*10 + $version.minor >= 32 and not $version.core
+    @if version.int_value() >= 32 and not version.core:
     
     glGetIntegerv(GL_CONTEXT_PROFILE_MASK, &profile);
 
@@ -63,9 +72,29 @@ int flextInit(void)
         fprintf(stderr, "Error: This application requires a compatibility profile\n");
         return GL_FALSE;
     }
-#end if
+    @end
+    
+    /* --- Check for minimal version and profile --- */
 
-#if $version.major < 3
+    if (major * 10 + minor < @version.int_value()!s) {
+    fprintf(stderr, "Error: OpenGL version @version.major!s.@version.minor!s not supported.\n");
+        fprintf(stderr, "       Your version is %d.%d.\n", major, minor);
+        fprintf(stderr, "       Try updating your graphics driver.\n");
+        return GL_FALSE;
+    }
+
+    @if version.int_value() >= 32 and not version.core:
+    glGetIntegerv(GL_CONTEXT_PROFILE_MASK, &profile);
+
+    if ((profile & GL_CONTEXT_COMPATIBILITY_PROFILE_BIT) == 0) {
+    fprintf(stderr, "Error: This application requires a compatibility profile\n");
+        return GL_FALSE;
+    }
+    @end
+
+    /* --- Check for extensions --- */
+
+    @if version.major < 3:
     extensions = strdup(glGetString(GL_EXTENSIONS));
     i = extensions;
 
@@ -83,71 +112,77 @@ int flextInit(void)
     }
 
     free(extensions);
-#else
+    @else:
     glGetIntegerv(GL_NUM_EXTENSIONS, &num_extensions);
     
     for (i = 0; i < num_extensions; i++) {
-        add_extension(glGetStringi(GL_EXTENSIONS, i));
+        add_extension((const char*)glGetStringi(GL_EXTENSIONS, i));
     }
-#end if
+    @end
 
-#for $extension,$required in $extensions.iteritems()
-#if $required:
-    if (!FLEXT_$extension) {
-        fprintf(stderr, "Error: OpenGL extension $(extension) not supported.\n");
+    @for extension,required in extensions:
+    @if required:
+    if (!FLEXT_@extension) {
+        fprintf(stderr, "Error: OpenGL extension GL_@extension not supported.\n");
         fprintf(stderr, "       Try updating your graphics driver.\n");
         return GL_FALSE;
     }
-#end if   
-#end for
+    @end  
+    @end
 
     return GL_TRUE;
 }
 
 
 
-void flextLoadOpenglFunctions(void)
+void flextLoadOpenGLFunctions(void)
 {
-    // --- Function pointer loading
-#for $category in $categories
-#if $functions.has_key($category) and len($functions[$category]) > 0 and $category not in ['VERSION_1_0', 'VERSION_1_1','VERSION_1_0_DEPRECATED', 'VERSION_1_1_DEPRECATED' ]
+    /* --- Function pointer loading --- */
 
-    // $category
 
-#for $function in $functions[$category]
-    glpf$function.name = (PFNGL$(function.name.upper())PROC)get_proc("gl$function.name");
-#end for
-#end if
-#end for
+    @for category,funcs in functions:
+    @if category not in ['VERSION_1_0', 'VERSION_1_1','VERSION_1_0_DEPRECATED', 'VERSION_1_1_DEPRECATED']:
+    /* GL_@category */
+
+    @for f in funcs:
+    glpf@f.name = (PFNGL@f.name.upper()_PROC*)get_proc("gl@f.name");
+    @end
+
+
+    @end
+    @end
 }
 
-// ----------------------- Extension flag definitions ---------------------- 
-#for $extension,$required in $extensions.iteritems()
-int FLEXT_$extension = GL_FALSE;
-#end for
+/* ----------------------- Extension flag definitions ---------------------- */
+@for extension,required in extensions:
+int FLEXT_@extension = GL_FALSE;
+@end
 
-// ----------------- Function pointer definitions ----------------
+/* ---------------------- Function pointer definitions --------------------- */
 
-#for $category in $categories
-#if $functions.has_key($category) and len($functions[$category]) > 0 and $category not in ['VERSION_1_0', 'VERSION_1_1','VERSION_1_0_DEPRECATED', 'VERSION_1_1_DEPRECATED' ]
-#for $function in $functions[$category]
-PFNGL$(function.name.upper())PROC glpf$(function.name) = NULL;
-#end for
-#end if
-#end for
+@for category,funcs in functions:
+@if len(funcs) > 0 and category not in ['VERSION_1_0', 'VERSION_1_1','VERSION_1_0_DEPRECATED', 'VERSION_1_1_DEPRECATED' ]:
+/* GL_@category */
+
+@for f in funcs:
+PFNGL@f.name.upper()_PROC* glpf@f.name = NULL;
+@end
+
+@end
+@end
+
 
 static void add_extension(const char* extension)
 {
-#for $extension,$required in $extensions.iteritems()
-    if (strcmp("GL_$(extension)", extension) == 0) {
-        FLEXT_$(extension) = GL_TRUE;
+@for extension,required in extensions:
+    if (strcmp("GL_@extension", extension) == 0) {
+        FLEXT_@extension = GL_TRUE;
     }
-#end for
+@end
 }
 
-#raw
 
-// get_proc from Slavomir Kaslev's gl3w.
+/* ------------------ get_proc from Slavomir Kaslev's gl3w ----------------- */
 
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN 1
@@ -233,4 +268,6 @@ static void *get_proc(const char *proc)
 }
 #endif
 
-#end raw
+#ifdef __cplusplus
+}
+#endif

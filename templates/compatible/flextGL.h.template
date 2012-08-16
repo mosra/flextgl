@@ -1,6 +1,4 @@
-#raw
-// WARNING: This file was automatically generated
-// Do not edit.
+@require(passthru, functions, enums, options, version, extensions)
 
 #ifndef __gl_h_
 #define __gl_h_
@@ -26,9 +24,7 @@ extern "C" {
 #define GLAPI extern
 #endif
 
-#end raw
-
-//-------------------------------- DATA TYPES -------------------------------//
+/* -------------------------------- DATA TYPES ------------------------------- */
 
 typedef unsigned int	GLenum;
 typedef unsigned char	GLboolean;
@@ -46,63 +42,58 @@ typedef float		GLclampf;	/* single precision float in [0,1] */
 typedef double		GLdouble;	/* double precision float */
 typedef double		GLclampd;	/* double precision float in [0,1] */
 
-//--------------------------------- PASSTHRU --------------------------------//
+/* --------------------------------- PASSTHRU -------------------------------- */
 
-$passthru
+@passthru
 
-//----------------------------------- ENUMS ---------------------------------//
+/* ----------------------------------- ENUMS --------------------------------- */
 
-#for $enum,$value in $enums
-#define GL_$enum $(' ' * ($longest_enum-len($enum))) ${"0x%x" % ($value)}
-#end for
-//------------------------ FUNCTION PROTOTYPES -----------------------------//
+@enums
 
-#for $category in $categories
-#if $functions.has_key($category) and len($functions[$category]) > 0
+/* --------------------------- FUNCTION PROTOTYPES --------------------------- */
 
-// $category
+@for cat,funcs in functions:
 
-#if $category in ['VERSION_1_0', 'VERSION_1_1','VERSION_1_0_DEPRECATED', 'VERSION_1_1_DEPRECATED' ]
-#for $function in $functions[$category]
-GLAPI $(function.returntype) APIENTRY gl$(function.name) ($(', '.join(['%s %s' % (type,name) for name, type in $function.params])));
-#end for
-#else
-#for $function in $functions[$category]
-typedef $(function.returntype) (APIENTRYP PFNGL$(function.name.upper())PROC)($(', '.join(['%s %s' % (type,name) for name, type in $function.params])));
-#end for
+/* GL_@cat */
 
-#for $function in $functions[$category]
-GLAPI PFNGL$(function.name.upper())PROC glpf$function.name;
-#end for
+    @if cat in ['VERSION_1_0', 'VERSION_1_1','VERSION_1_0_DEPRECATED', 'VERSION_1_1_DEPRECATED']:
+        @for f in funcs:
+GLAPI @f.returntype APIENTRY gl@f.name (@f.param_list_string());
+        @end
+    @else:
+        @for f in funcs:
+typedef @f.returntype (APIENTRY PFNGL@f.name.upper()_PROC (@f.param_list_string()));
+        @end
 
-#for $function in $functions[$category]
-#define gl$function.name glpf$function.name
-#end for
-#end if
-#end if
-#end for
+        @for f in funcs:
+GLAPI PFNGL@f.name.upper()_PROC *glpf@f.name;
+        @end
 
-#for $category in $categories
-#define GL_$category 1
-#end for
+        @for f in funcs:
+#define gl@f.name glpf@f.name
+        @end
+    @end
 
+@end
 
-// ------------------ Flags for optional extensions ---------------- 
+/* ---------------------- Flags for optional extensions ---------------------- */
 
-#for $extension,$required in $extensions.iteritems()
-extern int FLEXT_$extension;
-#end for
+@for extension,required in extensions:
+extern int FLEXT_@extension;
+@end
 
 int flextInit(void);
 
-#define FLEXT_MAJOR_VERSION $(version.major)
-#define FLEXT_MINOR_VERSION $(version.minor)
-#define FLEXT_CORE_PROFILE $(1 if $version.core else 0)
+#define FLEXT_MAJOR_VERSION @version.major!s
+#define FLEXT_MINOR_VERSION @version.minor!s
+@if version.core:
+#define FLEXT_CORE_PROFILE 1
+@else:
+#define FLEXT_CORE_PROFILE 0
+@end
 
 #ifdef __cplusplus
 }
 #endif
 
-
-
-#endif /* __gl_h_ */
+#endif /* _gl_h_ */

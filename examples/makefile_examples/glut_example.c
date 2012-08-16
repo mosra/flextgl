@@ -3,11 +3,13 @@
 #include <flextGL.h>
 #include <GL/glut.h>
 
-// This example is a modified version of gl3w's usage example. It
-// demonstrates using flextGL with GLUT.
-// We don't create a core context, because many GLUT versions don't
-// support it. This doesn't matter that much, because flextGL won't
-// export deprecated functions anyway.
+/*
+ * This example is a modified version of gl3w's usage example. It
+ * demonstrates using flextGL with GLUT.
+ * We don't create a core context, because many GLUT versions don't
+ * support it. This doesn't matter that much, because flextGL won't
+ * export deprecated functions anyway.
+ */
 
 static int width = 600, height = 600;
 
