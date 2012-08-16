@@ -17,7 +17,6 @@ You will need the following dependencies:
  * [Python 3.2](http://python.org)
  * [wheezy.template](http://packages.python.org/wheezy.template)
 
-------------------------------------------------------------------------
 
 Source tree
 -----------
@@ -112,7 +111,6 @@ At the moment, there are two template sets available:
   > extensions.  It will  obviously only  work  with GLFW,  but is  well
   > tested and the generated source code is very easy to understand.
 
-------------------------------------------------------------------------
 
 Copyright
 ---------
