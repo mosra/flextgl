@@ -19,7 +19,8 @@ You will need the following dependencies:
 
 ### What's new?
 
-This new version is a major rewrite that should make the spec parser quite a bit more manageable.
+This new version is a major rewrite that should make the spec parser quite 
+a bit more manageable.
 
 Added support for Python 3 and replaced Cheetah with Wheezy for templating.
 

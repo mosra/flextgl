@@ -1,4 +1,4 @@
-#version 140
+#version 330
 
 uniform vec3 light_pos;
 uniform vec4 light_color;

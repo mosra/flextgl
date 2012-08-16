@@ -1,4 +1,4 @@
-#version 140
+#version 330
 
 uniform mat4 perspective;
 uniform mat4 view;
