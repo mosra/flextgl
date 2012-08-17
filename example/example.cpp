@@ -93,7 +93,7 @@ void display_loop()
     glEnable(GL_FRAMEBUFFER_SRGB);
     glEnable(GL_DEPTH_TEST);
 
-    init_shaders("minimal.vert", "minimal.frag");
+    init_shaders("example.vert", "example.frag");
     init_buffers(mesh);
 
     bool running = true;

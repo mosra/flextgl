@@ -1,6 +1,9 @@
 #ifndef COMMON_HH
 #define COMMON_HH
 
+#define _USE_MATH_DEFINES
+#include <math.h>
+
 #include <flextGL.h>
 #include <GL/glfw.h>
 
