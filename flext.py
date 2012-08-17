@@ -1,3 +1,4 @@
+import time, os
 import urllib.request
 import os.path
 from glob import glob
@@ -21,6 +22,10 @@ enumext_file = '%s/enumext.spec' % spec_dir
 spec_file    = '%s/gl.spec' % spec_dir
 tm_file      = '%s/gl.tm' % spec_dir
 
+
+def file_age(filename):
+    return time.time() - os.path.getmtime(filename) / 3600.0;
+    
 
 def parse_args():
     parser = OptionParser(usage='Usage: %prog [options] filename')
@@ -46,6 +51,31 @@ def parse_args():
         options.template_dir = default_template_root + options.template
 
     return options, args[0]
+
+
+def download_spec(always_download = False):
+
+    if not os.path.exists(spec_dir):
+        os.makedirs(spec_dir)
+
+    if (24 * 3 < max([file_age(tm_file),
+                          file_age(spec_file), 
+                          file_age(enumext_file)])):
+        always_download = True
+
+    if ( not always_download and
+         os.path.exists(spec_file) and 
+         os.path.exists(tm_file) and 
+         os.path.exists(enumext_file) ):
+        return
+
+
+    print ('Downloading gl.tm')
+    urllib.request.urlretrieve('http://www.opengl.org/registry/api/gl.tm', tm_file)
+    print ('Downloading gl.spec')
+    urllib.request.urlretrieve('http://www.opengl.org/registry/api/gl.spec', spec_file)
+    print ('Downloading enumext.spec')
+    urllib.request.urlretrieve('http://www.opengl.org/registry/api/enumext.spec', enumext_file)
 
 
 class Version():
@@ -98,26 +128,6 @@ def parse_profile(filename):
                 exit(1)
     
     return version, extensions
-
-
-def download_spec(always_download = False):
-
-    if not os.path.exists(spec_dir):
-        os.makedirs(spec_dir)
-
-    if ( not always_download and
-         os.path.exists(spec_file) and 
-         os.path.exists(tm_file) and 
-         os.path.exists(enumext_file) ):
-        return
-
-
-    print ('Downloading gl.tm')
-    urllib.request.urlretrieve('http://www.opengl.org/registry/api/gl.tm', tm_file)
-    print ('Downloading gl.spec')
-    urllib.request.urlretrieve('http://www.opengl.org/registry/api/gl.spec', spec_file)
-    print ('Downloading enumext.spec')
-    urllib.request.urlretrieve('http://www.opengl.org/registry/api/enumext.spec', enumext_file)
 
 
 def parse_typemap():
