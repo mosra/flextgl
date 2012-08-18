@@ -24,7 +24,7 @@ tm_file      = '%s/gl.tm' % spec_dir
 
 
 def file_age(filename):
-    return time.time() - os.path.getmtime(filename) / 3600.0;
+    return (time.time() - os.path.getmtime(filename)) / 3600.0
     
 
 def parse_args():
@@ -58,15 +58,13 @@ def download_spec(always_download = False):
     if not os.path.exists(spec_dir):
         os.makedirs(spec_dir)
 
-    if (24 * 3 < max([file_age(tm_file),
-                          file_age(spec_file), 
-                          file_age(enumext_file)])):
-        always_download = True
-
-    if ( not always_download and
-         os.path.exists(spec_file) and 
-         os.path.exists(tm_file) and 
-         os.path.exists(enumext_file) ):
+    if (not always_download and
+        all([os.path.exists(spec_file),
+             os.path.exists(tm_file),
+             os.path.exists(enumext_file)]) and
+        not any([file_age(spec_file) > 3 * 24,
+                 file_age(tm_file) > 3 * 24,
+                 file_age(enumext_file) > 3 * 24])):
         return
 
 
