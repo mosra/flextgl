@@ -76,7 +76,7 @@ This  will  create  the  requested  source  code and  put  it  in  the
 'generated' directory.
 
 The  best  way  to work  with  flextGL  is  to  integrate it  in  your
-build-system. The example project demonstrates this for Make.
+build-system. The example project demonstrates this for Make and CMake.
 
 Generated API
 -------------
@@ -120,13 +120,14 @@ At the moment, there are two template sets available:
 Installing Wheezy Template on Windows
 -------------------------------------
 
-The simplest way to install Wheezy Template on Windows is to install the Setuptools replacement
-[distribute](http://pypi.python.org/pypi/distribute/) by downloading and 
-extracting the `distribute-*.tar.gz` package and running `distribute-setup.py`
-using Python 3.2.
+The simplest way to install Wheezy Template on Windows is to install the
+Setuptools replacement [distribute](http://pypi.python.org/pypi/distribute/) by
+downloading and extracting the `distribute-*.tar.gz` package and running
+`distribute-setup.py` using Python 3.2.
 
-This will install the Setuptools scripts in `C:\python32\Scripts`. Add this 
-folder to your path and call the following command in an Administrator commandline:
+This will install the Setuptools scripts in `C:\python32\Scripts`. Add this
+folder to your path and call the following command in an Administrator
+commandline:
 
 `easy_install.exe wheezy.template`
 
