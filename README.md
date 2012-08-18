@@ -117,6 +117,20 @@ At the moment, there are two template sets available:
   > extensions.  It will  obviously only  work  with GLFW,  but is  well
   > tested and the generated source code is very easy to understand.
 
+Installing Wheezy Template on Windows
+-------------------------------------
+
+The simplest way to install Wheezy Template on Windows is to install the Setuptools replacement
+[distribute](http://pypi.python.org/pypi/distribute/) by downloading and 
+extracting the `distribute-*.tar.gz` package and running `distribute-setup.py`
+using Python 3.2.
+
+This will install the Setuptools scripts in `C:\python32\Scripts`. Add this 
+folder to your path and call the following command in an Administrator commandline:
+
+`easy_install.exe wheezy.template`
+
+You should now be able to run flextGLgen.
 
 Copyright
 ---------
