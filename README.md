@@ -113,9 +113,14 @@ At the moment, there are two template sets available:
   > It has not been thoroughly tested yet, though.
 
 * `'glfw'`
-  > This  uses  GLFW's functions  for  loading  and  testing for  OpenGL
+  > This  uses  GLFW 2's functions  for  loading  and  testing for  OpenGL
   > extensions.  It will  obviously only  work  with GLFW,  but is  well
   > tested and the generated source code is very easy to understand.
+
+* `'glfw3'`
+  > This  works like the `glfw` template, but uses GLFW 3 instead. In this
+  > template, a pointer to the GLFWwindow has to be passed as a parameter
+  > of `flextInit()`.
 
 Installing Wheezy Template on Windows
 -------------------------------------
