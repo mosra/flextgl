@@ -33,34 +33,51 @@ void init_shaders(const string& vertex_shader_file, const string& fragment_shade
 void free_shaders();
 void init_buffers(const Mesh& mesh);
 void free_buffers();
-void display_loop();
+void display_loop(GLFWwindow* window);
 void draw(const Mesh& mesh, const mat4& perspective, const mat4& view, const mat4& model);
 
 int main()
-{    
+{
     // Initialize GLFW
-    glfwInit();
+    if (!glfwInit()) {
+		return 1;
+	}
 
     // Set flags before window creation
-    glfwOpenWindowHint(GLFW_WINDOW_NO_RESIZE, GL_TRUE); // Make window size fixed
+	
+    glfwWindowHint(GLFW_RESIZABLE, GL_FALSE); // Make window size fixed
 
-    if(glfwOpenWindow(window_width, window_height,   // Window size
-                      0, 0, 0, 0,                    // Bit depth: automatic
-                      24, 8,                         // Depth, stencil depth
-                      GLFW_WINDOW) != GL_TRUE) {     // Windowed mode
+	// Set OpenGL version from generated flextGL flags
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, FLEXT_MAJOR_VERSION);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, FLEXT_MINOR_VERSION);
+	if (FLEXT_CORE_PROFILE) {
+		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	} else {
+		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
+	}
+
+	// Create GLFW window
+	GLFWwindow* window = glfwCreateWindow(window_width, window_height, "flextGL GLFW3 example", NULL, NULL);
+	
+    if(!window) {
         cerr << "Failed to create OpenGL window" << endl;
         
         glfwTerminate();
         return 1;
     }
 
+	// Make the window's context current
+    glfwMakeContextCurrent(window);
+	
     // Initialize flextGL
-    if (flextInit() != GL_TRUE) {
+    if (flextInit(window) != GL_TRUE) {
+
+        glfwTerminate();
         return 1;
     }
 
     // Start display loop
-    display_loop();    
+    display_loop(window);    
 
     glfwTerminate();
     return 0;
@@ -85,7 +102,7 @@ void step_simulation(mat4& view, mat4& model, double time_diff)
 }
 
 
-void display_loop()
+void display_loop(GLFWwindow* window)
 {
     Mesh mesh;
     create_donut(mesh, 1.0, 0.25, 128, 32);
@@ -115,11 +132,13 @@ void display_loop()
         draw(mesh, perspective, view, model);
 
         get_errors();
-        glfwSwapBuffers();
+		
+        glfwSwapBuffers(window);
+		glfwPollEvents();
         
-        running = running && !glfwGetKey( GLFW_KEY_ESC );
-        running = running && !glfwGetKey( 'Q' );
-        running = running && glfwGetWindowParam( GLFW_OPENED );        
+        running = running && !glfwGetKey( window, GLFW_KEY_ESCAPE );
+        running = running && !glfwGetKey( window, 'Q' );
+        running = running && !glfwWindowShouldClose( window );        
     }
 
     free_buffers();

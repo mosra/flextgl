@@ -21,12 +21,12 @@ endif()
 include_directories("${PROJECT_BINARY_DIR}/generated")
 
 add_custom_command(OUTPUT "${PROJECT_BINARY_DIR}/generated/flextGL.h" "${PROJECT_BINARY_DIR}/generated/flextGL.c"
-                   COMMAND ${PYTHON_EXECUTABLE} "${PROJECT_SOURCE_DIR}/../flextGLgen.py" -Dgenerated -Tglfw ${PROJECT_SOURCE_DIR}/profile.txt
+                   COMMAND ${PYTHON_EXECUTABLE} "${PROJECT_SOURCE_DIR}/../flextGLgen.py" -Dgenerated -Tglfw3 ${PROJECT_SOURCE_DIR}/profile.txt
                    DEPENDS ${PROJECT_SOURCE_DIR}/profile.txt 
                            ${PROJECT_SOURCE_DIR}/../flextGLgen.py
                            ${PROJECT_SOURCE_DIR}/../flext.py
-                           ${PROJECT_SOURCE_DIR}/../templates/glfw/flextGL.h.template
-                           ${PROJECT_SOURCE_DIR}/../templates/glfw/flextGL.c.template)                           
+                           ${PROJECT_SOURCE_DIR}/../templates/glfw3/flextGL.h.template
+                           ${PROJECT_SOURCE_DIR}/../templates/glfw3/flextGL.c.template)                           
                    
 set(SOURCE_FILES example.cpp mesh.cpp utility.cpp)
 set(HEADER_FILES common.hpp mesh.hpp utility.hpp)
