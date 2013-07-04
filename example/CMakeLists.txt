@@ -10,12 +10,7 @@ if (WIN32)
 	set(PYTHON_EXECUTABLE "C:/python32/python.exe")
 	include_directories("${PROJECT_SOURCE_DIR}/glfw/include")
 	
-	find_library(GLFW_DEBUG_LIBRARIES GLFWd.lib PATHS glfw/lib/win32)
-	find_library(GLFW_RELEASE_LIBRARIES GLFW.lib PATHS glfw/lib/win32)
-	
-	set(GLFW_LIBRARIES 
-		debug ${GLFW_DEBUG_LIBRARIES}
-		optimized ${GLFW_RELEASE_LIBRARIES})
+	find_library(GLFW_LIBRARIES glfw3.lib PATHS glfw/lib/win32)
 endif()
 
 include_directories("${PROJECT_BINARY_DIR}/generated")
