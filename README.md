@@ -14,7 +14,7 @@ It is a bit different than other comparable systems:
 
 You will need the following dependencies:
 
- * [Python 3.2](http://python.org)
+ * [Python 3.x](http://python.org)
  * [Wheezy Template](http://packages.python.org/wheezy.template)
 
 ### What's new?
