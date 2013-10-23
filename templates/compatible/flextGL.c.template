@@ -11,12 +11,13 @@
 extern "C" {
 #endif
 
+typedef void(__stdcall *GLPROC)();
 
 void flextLoadOpenGLFunctions(void);
 
 static void open_libgl(void);
 static void close_libgl(void);
-static void *get_proc(const char *proc);
+static GLPROC get_proc(const char *proc);
 static void add_extension(const char* extension);
 
 int flextInit(void)
@@ -199,9 +200,9 @@ static void close_libgl(void)
     FreeLibrary(libgl);
 }
 
-static void *get_proc(const char *proc)
+static GLPROC get_proc(const char *proc)
 {
-    void *res;
+    GLPROC res;
 
     res = wglGetProcAddress(proc);
     if (!res)
@@ -230,9 +231,9 @@ static void close_libgl(void)
     CFRelease(bundleURL);
 }
 
-static void *get_proc(const char *proc)
+static GLPROC get_proc(const char *proc)
 {
-    void *res;
+    GLPROC res;
 
     CFStringRef procname = CFStringCreateWithCString(kCFAllocatorDefault, proc,
                 kCFStringEncodingASCII);
@@ -256,9 +257,9 @@ static void close_libgl(void)
     dlclose(libgl);
 }
 
-static void *get_proc(const char *proc)
+static GLPROC get_proc(const char *proc)
 {
-    void *res;
+    GLPROC res;
 
     res = glXGetProcAddress((const GLubyte *) proc);
     if (!res)
