@@ -385,7 +385,7 @@ def find_categories(version, extensions, use_all=False):
         if old_categories == categories:
             break
 
-    return categories
+    return list(categories)
 
                 
 def generate_source(options, version, enums, functions_by_category, passthru, extensions):
@@ -397,7 +397,8 @@ def generate_source(options, version, enums, functions_by_category, passthru, ex
                           'enums'     : enums,
                           'options'   : options,
                           'version'   : version,
-                          'extensions': extensions}
+                          'extensions': extensions,
+                          'categories' : sorted(find_categories(version, extensions))}
     if not os.path.isdir(options.template_dir):
         print ('%s is not a directory' % options.template_dir)
         exit(1)

@@ -1,4 +1,4 @@
-@require(passthru, functions, enums, options, version, extensions)
+@require(passthru, functions, enums, options, version, extensions, categories)
 
 #ifndef __gl_h_
 #define __gl_h_
@@ -89,6 +89,10 @@ struct GLFWwindow;
 typedef struct GLFWwindow GLFWwindow;
 
 int flextInit(GLFWwindow* window);
+
+@for category in categories:
+#define GL_@category
+@end
 
 #define FLEXT_MAJOR_VERSION @version.major!s
 #define FLEXT_MINOR_VERSION @version.minor!s
