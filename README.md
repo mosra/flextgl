@@ -39,10 +39,6 @@ Source tree
   > Some example profile files to give  you an idea on how to write your 
   > own. 'profiles/exampleProfile.txt' contains a lot of comments to get
   > you up to speed.
-
-* `example/`
-  > A small C++/GLFW example  on how to include flextGL into your 
-  > project using CMake.
    
 * `spec/` (generated)
   > This directory is  automatically created by the script  to store the
@@ -76,7 +72,9 @@ This  will  create  the  requested  source  code and  put  it  in  the
 'generated' directory.
 
 The  best  way  to work  with  flextGL  is  to  integrate it  in  your
-build-system. The example project demonstrates this for Make and CMake.
+build-system.
+You can find a small example program that demonstrates this for Make and CMake
+The example project demonstrates this for Make and CMake [here](https://github.com/ginkgo/flextGL-example).
 
 Generated API
 -------------
