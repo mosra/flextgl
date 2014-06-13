@@ -27,7 +27,7 @@ int flextInit(void)
     /* --- Check for minimal version and profile --- */
 
     if (major * 10 + minor < @version.int_value()!s) {
-	fprintf(stderr, "Error: OpenGL version @version.major!s.@version.minor!s not supported.\n");
+        fprintf(stderr, "Error: OpenGL version @version.major!s.@version.minor!s not supported.\n");
         fprintf(stderr, "       Your version is %d.%d.\n", major, minor);
         fprintf(stderr, "       Try updating your graphics driver.\n");
         return GL_FALSE;
@@ -37,7 +37,7 @@ int flextInit(void)
     glGetIntegerv(GL_CONTEXT_PROFILE_MASK, &profile);
 
     if ((profile & GL_CONTEXT_COMPATIBILITY_PROFILE_BIT) == 0) {
-	fprintf(stderr, "Error: This application requires a compatibility profile\n");
+        fprintf(stderr, "Error: This application requires a compatibility profile\n");
         return GL_FALSE;
     }
     @end

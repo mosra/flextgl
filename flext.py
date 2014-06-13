@@ -1,13 +1,16 @@
 import time, os
 import urllib.request
 import os.path
-from glob import glob
 import re
+
+from glob     import glob
 from optparse import OptionParser
 
-from wheezy.template.engine import Engine
+import xml.etree.ElementTree as etree
+
+from wheezy.template.engine   import Engine
 from wheezy.template.ext.core import CoreExtension
-from wheezy.template.loader import FileLoader
+from wheezy.template.loader   import FileLoader
 
 script_dir = os.path.dirname(__file__)
 
@@ -18,10 +21,13 @@ script_dir += '/'
 spec_dir = script_dir + 'spec/'
 default_template_root = script_dir + 'templates/'
 
-enumext_file = '%s/enumext.spec' % spec_dir
-spec_file    = '%s/gl.spec' % spec_dir
-tm_file      = '%s/gl.tm' % spec_dir
+specFileList = ['gl.xml']
 
+specURL = 'http://www.opengl.org/registry/api/'
+
+gl_xml_file = '%s/gl.xml' % spec_dir
+
+GL_API_NAME = 'gl'
 
 def file_age(filename):
     return (time.time() - os.path.getmtime(filename)) / 3600.0
@@ -54,27 +60,15 @@ def parse_args():
 
 
 def download_spec(always_download = False):
-
     if not os.path.exists(spec_dir):
         os.makedirs(spec_dir)
 
-    if (not always_download and
-        all([os.path.exists(spec_file),
-             os.path.exists(tm_file),
-             os.path.exists(enumext_file)]) and
-        not any([file_age(spec_file) > 3 * 24,
-                 file_age(tm_file) > 3 * 24,
-                 file_age(enumext_file) > 3 * 24])):
-        return
-
-
-    print ('Downloading gl.tm')
-    urllib.request.urlretrieve('http://www.opengl.org/registry/api/gl.tm', tm_file)
-    print ('Downloading gl.spec')
-    urllib.request.urlretrieve('http://www.opengl.org/registry/api/gl.spec', spec_file)
-    print ('Downloading enumext.spec')
-    urllib.request.urlretrieve('http://www.opengl.org/registry/api/enumext.spec', enumext_file)
-
+    for fileName in specFileList:
+        filePath = '%s%s' % (spec_dir, fileName)
+        if (always_download or not os.path.exists(filePath) or file_age(filePath) > 3 * 24):
+            fileURL  = '%s%s' % (specURL, fileName)
+            print ('Downloading %s' % fileURL)
+            urllib.request.urlretrieve(fileURL, filePath)
 
 class Version():
     def __init__(self, major, minor, core):
@@ -83,12 +77,22 @@ class Version():
         self.core = core
 
     def __str__(self):
-
         return 'OpenGL %d.%d %s' % (self.major, self.minor, 'core' if self.core else 'compatibility')
 
     def int_value(self):
         return 10 * self.major + self.minor;
 
+class Function:
+    def __init__(self, rettype, name, params):
+        self.name          = name
+        self.params        = params
+        self.returntype    = rettype
+
+    def param_list_string(self):
+        return 'void' if len(self.params) == 0 else ', '.join(['%s %s' % (t, p) for p,t in self.params])
+
+    def param_type_list_string(self):
+        return 'void' if len(self.params) == 0 else ', '.join(['%s' % t for p,t in self.params])
 
 def parse_profile(filename):
     comment_pattern = re.compile('#.*$|\s+$')
@@ -127,305 +131,251 @@ def parse_profile(filename):
     
     return version, extensions
 
+class APISubset:
+    def __init__(self, name, types, enums, commands):
+        self.name     = name
+        self.types    = types
+        self.enums    = enums
+        self.commands = commands
 
-def parse_typemap():
-    typemap_pattern = re.compile('(\w+),\*,\*,\s*([A-Za-z0-9 \*_]+),*,*')
+class Type:
+    def __init__(self, name, definition, dependent):
+        self.name       = name
+        self.definition = definition
+        self.dependent  = dependent
 
-    typemap = {}
+class Enum:
+    def __init__(self, name, value):
+        self.name  = name
+        self.value = value
 
-    with open(tm_file, 'r') as tmfile:
-        for line in tmfile:
-            match = typemap_pattern.match(line)
+class Command:
+    def __init__(self, rettype, name, params, requiredTypes):
+        self.name          = name
+        self.params        = params
+        self.returntype    = rettype
+        self.requiredTypes = requiredTypes
 
-            if match:
-                typemap[match.group(1)] = match.group(2)
+def safe_text(text):
+    return '' if (text is None) else text
 
-    typemap['void'] = typemap['Void']
+def xml_extract_all_text(node, substitutes):
+    fragments = [safe_text(node.text)]
+    for item in list(node):
+        fragments.append(substitutes[item.tag] if item.tag in substitutes else safe_text(item.text))
+        fragments.append(safe_text(item.tail))
+    return ''.join(fragments)
 
-    return typemap
+def xml_parse_type_name_pair(node):
+    name = node.find('name').text.strip()
+    type = xml_extract_all_text(node, {'name':''})
+    ptype = node.find('ptype')
+    return (name, type, ptype.text.strip() if ptype != None else None)
+
+def extract_names(feature, selector):
+    return [element.attrib['name'] for element in feature.findall('./%s[@name]' % selector)]
+
+def parse_int_version(version_str):
+    version_pattern = re.compile('(\d)\.(\d)')
+    match = version_pattern.match(version_str)
+    return int(match.group(1)) * 10 + int(match.group(2))
+
+def parse_xml_enums(root):
+    enums = {}
+
+    for enum in root.findall("./enums/enum"):
+        if ('api' in enum.attrib and enum.attrib['api'] != GL_API_NAME): continue
+        name  = enum.attrib['name']
+        value = "%s%s" % (enum.attrib['value'], enum.attrib['type']) if 'type' in enum.attrib else enum.attrib['value']
+        enums[name] = value
+
+    return enums
+
+def parse_xml_types(root):
+    types = []
+
+    for type in root.findall("./types/type"):
+        if ('api' in type.attrib and type.attrib['api'] != GL_API_NAME): continue
+
+        name = type.attrib['name'] if 'name'in type.attrib else type.find('./name').text
+        definition = xml_extract_all_text(type, {'apientry' : 'APIENTRY'})
+
+        types.append(Type(name, definition, type.attrib['requires'] if 'requires' in type.attrib else None))
+
+    return types
+
+def parse_xml_commands(root):
+    commands = {}
+
+    for cmd in root.findall("./commands/command"):
+        requiredTypes = set()
+        name, rettype, requiredType = xml_parse_type_name_pair(cmd.find('./proto'))
+        if requiredType!=None:
+            requiredTypes.add(requiredType)
 
 
-def build_entry_dependencies(dependencies = {}):
-    opengl_pattern      = re.compile('# OpenGL (\d).(\d) commands\s*$')
-    opengl_deprecated_pattern = re.compile('# OpenGL (\d).(\d) deprecated commands\s*$')
-    category_pattern = re.compile('\s*category\s+(\w+)')
-    newcategory_pattern = re.compile('newcategory: (\w+)')
-    extension_pattern   = re.compile('passthru: \/\* (\w+) \*\/')
-    reuse_1_pattern     = re.compile('passthru: \/\* (\w+) reuses entry points from (\w+) \*\/')
-    reuse_2_pattern     = re.compile('passthru: \/\* (\w+) also reuses entry points from (\w+) and (\w+) \*\/')
-    require_pattern     = re.compile('#@ (\w+) also requires (\w+)')
-    shared_pattern      = re.compile('passthru: \/\* .* entry points are shared with (\w+). \*\/')
-    
+        params = []
+        for item in cmd.findall("./param"):
+            pname, ptype, requiredType = xml_parse_type_name_pair(item)
+            params.append((pname, ptype))
 
-    current_deps = set()
-    current_cat  = None
-    passthru     = []
+            if requiredType!=None:
+                requiredTypes.add(requiredType)
 
-    with open(spec_file, 'r') as specfile:
-        for line in specfile:
+        commands[name] = Command(rettype, name, params, requiredTypes)
 
-            match = opengl_pattern.match(line)
-            if match:
-                line = 'newcategory: VERSION_%s_%s' % (match.group(1), match.group(2))
+    return commands
 
-            match = opengl_deprecated_pattern.match(line)
-            if match:
-                line = 'newcategory: VERSION_%s_%s_DEPRECATED' % (match.group(1), match.group(2))
+def parse_xml_features(root, int_version, core):
+    subsets = []
+    profileStr = 'core' if core else 'compatibility'
 
-            match = category_pattern.match(line)
-            if match:
-                line = 'newcategory: %s' % match.group(1)
+    for feature in root.findall("./feature[@api='%s'][@name][@number]" % GL_API_NAME):
+        if (parse_int_version(feature.attrib['number'])>int_version):
+            continue
 
-            match = newcategory_pattern.match(line)
-            if match:
-                if current_cat:
-                    dependencies[current_cat] = current_deps
-                    
-                current_cat  = match.group(1)
-                current_deps = dependencies[current_cat] if current_cat in dependencies else set()
+        featureName = feature.attrib['name']
+
+        typeList    = []
+        enumList    = []
+        commandList = []
+
+        for actionSet in list(feature):
+            if 'profile' in actionSet.attrib and actionSet.attrib['profile'] != profileStr:
                 continue
 
-            match = extension_pattern.match(line)
-            if match:
-                current_deps.add(match.group(1))
-                continue
+            if actionSet.tag == 'require':
+                typeList.extend(extract_names(actionSet, './type'))
+                enumList.extend(extract_names(actionSet, './enum'))
+                commandList.extend(extract_names(actionSet, './command'))
 
-            match = reuse_1_pattern.match(line)
-            if match:
-                current_deps.add(match.group(2))
-                continue
+            if actionSet.tag == 'remove':
+                for subset in subsets:
+                    subset.types    = [entry for entry in subset.types    if entry not in set(extract_names(actionSet, './type'))]
+                    subset.enums    = [entry for entry in subset.enums    if entry not in set(extract_names(actionSet, './enum'))]
+                    subset.commands = [entry for entry in subset.commands if entry not in set(extract_names(actionSet, './command'))]
 
-            match = reuse_2_pattern.match(line)
-            if match:
-                current_deps.add(match.group(2))
-                current_deps.add(match.group(3))
-                continue
+        subsets.append(APISubset(featureName[3:], typeList, enumList, commandList))
 
-            match = require_pattern.match(line)
-            if match:
-                current_deps.add(match.group(2))
-                continue
+    return subsets
 
-            match = shared_pattern.match(line)
-            if match:
-                current_deps.add(match.group(1))
-                continue
+def parse_xml_extensions(root, extensions):
+    removedEnums    = set()
+    removedTypes    = set()
+    removedCommands = set()
 
+    subsets = []
 
-    if current_cat:
-        dependencies[current_cat] = current_deps  
+    for name, _ in extensions:
+        extension = root.find("./extensions/extension[@name='GL_%s']" % name)
+        if (extension==None):
+            print ('%s is not an extension' % name)
+            continue
+        subsets.append(APISubset(name, extract_names(extension, 'require/type'), extract_names(extension, 'require/enum'), extract_names(extension, 'require/command')))
 
-    return dependencies
-    
-    
+    return subsets
 
-def parse_enums():
-    category_pattern = re.compile('(\w+) enum:')
-    passthru_pattern = re.compile('passthru: (.*)')
-    enum_pattern     = re.compile('\s*(\w+)\s*=\s*(-?\w+)')
-    use_pattern      = re.compile('\s*use\s+(\w+)\s+(\w+)')
-    category = None
-    enums = []
-    lines = []
-    enum_dict = {}
+def generate_passthru(dependencies, types):
+    passthru = ''
+    for type in types:
+        if (type.name in dependencies): passthru += type.definition + '\n'
 
-    with open(enumext_file, 'r') as enumfile:
-        for line in enumfile:
-            
-            match = category_pattern.match(line)
-            if match:
-                category = match.group(1)
+    return passthru
 
-                lines.append('\n/* GL_%s */' % category)
-                continue
+def generate_enums(subsets, enums):
+    enumsDecl = ''
+    for subset in subsets:
+        if subset.enums != []:
+            enumsDecl += '\n/* GL_%s */\n\n' % subset.name
+            for enumName in subset.enums:
+                enumsDecl += '#define %s %s\n' % (enumName, enums[enumName])
 
-            match = passthru_pattern.match(line)
-            if match:
-                #lines.append(match.group(1))
-                continue
+    return enumsDecl
 
-            match = enum_pattern.match(line)
-            if match:
-                value = match.group(2)
-                value = value[3:] if value[:3] == 'GL_' else value
-                value = enum_dict[value] if value in enum_dict else value
-                enum_dict[match.group(1)] = value
-                lines.append('#define GL_%s %s' % (match.group(1).ljust(45), value))
-                continue
+def generate_functions(subsets, commands):
+    functions = []
+    for subset in subsets:
+        if subset.commands != []:
+            #remove 'gl' suffixes
+            functions.append((subset.name, [Function(commands[name].returntype, commands[name].name[2:], commands[name].params) for name in subset.commands]))
 
-            match = use_pattern.match(line)
-            if match:
-                #lines.append('/* reuse GL_%s */' % match.group(2))
-                continue
-            
+    return functions
 
-    return '\n'.join(lines)
+def resolve_type_dependencies(subsets, types, commands):
+    requiredTypes = set()
 
-class Function():
-    def __init__(self, name):
-        self.name = name
-        self.params = []
-        self.returntype = None
-        self.minor_version = 1
-        self.major_version = 0
-        self.deprecated = False
-        self.category = None
+    for subset in subsets:
+        requiredTypes |= set(subset.types)
+        for cmd in subset.commands:
+            requiredTypes |= commands[cmd].requiredTypes
 
-    def is_incomplete(self):
-        if self.returntype == None:
-            return True
+    for type in types:
+        if type.name in requiredTypes and type.dependent:
+            requiredTypes.add(type.dependent)
 
-        if self.category == None:
-            return True
+    return requiredTypes
 
-        return False
+def parse_xml(version, extensions):
+    tree = etree.parse(gl_xml_file)
+    root = tree.getroot()
 
-    def param_list_string(self):
-        return 'void' if len(self.params) == 0 else ', '.join(['%s %s' % (t, p) for p,t in self.params])
+    types    = parse_xml_types(root)
+    enums    = parse_xml_enums(root)
+    commands = parse_xml_commands(root)
 
-    def param_type_list_string(self):
-        return 'void' if len(self.params) == 0 else ', '.join(['%s' % t for p,t in self.params])
+    subsetsGL  = parse_xml_features  (root, version.int_value(), version.core)
+    subsetsEXT = parse_xml_extensions(root, extensions)
 
-    def __str__(self):
-        return '%s gl%s(%s)' % (self.returntype, self.name, self.param_list_string())
+    subsets  = subsetsGL
+    subsets += subsetsEXT
 
-def parse_functions(categories, typemap):
+    requiredTypes = resolve_type_dependencies(subsets, types, commands)
 
-    function_pattern         = re.compile('(\w+)\(.*\)\s*$')
-    return_pattern           = re.compile('\s*return\s+(\w+)')
-    category_pattern         = re.compile('\s*category\s+(\w+)')
-    param_pattern            = re.compile('\s*param\s+(\w+)\s+(\w+) (in|out) (value|array|reference)')
-    passthru_pattern         = re.compile('passthru: (.+)')
-    passthru_comment_pattern = re.compile('passthru: \/\*(.+)\*\/')
-    
+    passthru     = generate_passthru(requiredTypes, types)
+    enums        = generate_enums(subsets, enums)
+    functions    = generate_functions(subsets, commands)
 
-    functions_by_category = {}
-    current_function = None
-    passthru = []
+    return passthru, enums, functions
 
-    with open(spec_file, 'r') as specfile:
-        for line in specfile:
-            
-            match = function_pattern.match(line)
-            if match:
-                if current_function and current_function.category in categories:
-                    if current_function.category not in functions_by_category:
-                        functions_by_category[current_function.category] = []
-                    functions_by_category[current_function.category].append(current_function)
-
-                current_function = Function(match.group(1))
-                continue
-
-            match = return_pattern.match(line)
-            if match:
-                current_function.returntype = typemap[match.group(1)]
-                continue
-
-            match = category_pattern.match(line)
-            if match:
-                current_function.category = match.group(1)
-                continue
-
-            match = param_pattern.match(line)
-            if match:
-                
-                param = match.group(1)
-                isPointer = match.group(4) == 'array' or match.group(4) == 'reference'
-                typename = match.group(2)
-                direction = match.group(3)
-                
-                typename = ('const ' if direction == 'in' else '') + typemap[typename] + ('*' if isPointer else '')
-                current_function.params.append((param, typename))
-                continue
-            
-            if passthru_comment_pattern.match(line):
-                continue
-
-            match = passthru_pattern.match(line)
-            if match:
-                passthru.append(match.group(1)+'\n')
-
-
-    if current_function and current_function.category in categories:
-        if current_function.category not in functions_by_category:
-            functions_by_category[current_function.category] = []
-        functions_by_category[current_function.category].append(current_function)
-
-    return functions_by_category, ''.join(passthru)
-                
-    
-def find_categories(version, extensions, use_all=False):
-    dependencies = build_entry_dependencies()
-    
-    all_categories = set(dependencies.keys())
-
-    if use_all:
-        return all_categories
-
-    categories = set([extension for extension,_ in extensions])
-    
-    for v in range(10,version.major*10+version.minor+1):
-        major = v / 10
-        minor = v % 10
-
-        categories.add('VERSION_%d_%d' % (major,minor))
-
-        if not version.core:
-            categories.add('VERSION_%d_%d_DEPRECATED' % (major,minor))
-
-    categories = categories.intersection(all_categories)
-
-    while True:
-        old_categories = categories
-
-        for cat in old_categories:
-            if cat in dependencies:
-                categories = categories.union(dependencies[cat])
-
-        if old_categories == categories:
-            break
-
-    return list(categories)
-
-                
 def generate_source(options, version, enums, functions_by_category, passthru, extensions):
     generated_warning = '/* WARNING: This file was automatically generated */\n/* Do not edit. */\n'
     template_pattern = re.compile("(.*).template")
-    
+
     template_namespace = {'passthru'  : passthru,
-                          'functions' : sorted(functions_by_category.items()),
+                          'functions' : functions_by_category,
                           'enums'     : enums,
                           'options'   : options,
                           'version'   : version,
-                          'extensions': extensions,
-                          'categories' : sorted(find_categories(version, extensions))}
+                          'extensions': extensions}
     if not os.path.isdir(options.template_dir):
         print ('%s is not a directory' % options.template_dir)
         exit(1)
-    
+
     if os.path.exists(options.outdir) and not os.path.isdir(options.outdir):
         print ('%s is not a directory' % options.outdir)
         exit(1)
 
     if not os.path.exists(options.outdir):
         os.mkdir(options.outdir)
-        
-        
+
     engine = Engine(loader=FileLoader([options.template_dir]), extensions=[CoreExtension()])
     
+    generatedFiles = 0
+    allFiles       = 0;
+
     for template_path in glob('%s/*.template' % os.path.abspath(options.template_dir)):
-        
+
         infile = os.path.basename(template_path)
         outfile = '%s/%s' % (options.outdir, template_pattern.match(infile).group(1))
-                
+
         template = engine.get_template(infile)
-        
+
+        allFiles += 1
+
         with open(outfile, 'w') as out:
             out.write(generated_warning)
             out.write(template.render(template_namespace))
+            print("Successfully generated %s" % outfile)
+            generatedFiles += 1;
 
-        
-        
-
-        
-        
+    print("Generated %d of %d files" % (generatedFiles, allFiles))
