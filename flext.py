@@ -294,10 +294,14 @@ def generate_enums(subsets, enums):
 
 def generate_functions(subsets, commands):
     functions = []
+    function_set = set()
+    
     for subset in subsets:
-        if subset.commands != []:
-            #remove 'gl' suffixes
-            functions.append((subset.name, [Function(commands[name].returntype, commands[name].name[2:], commands[name].params) for name in subset.commands]))
+        #remove 'gl' suffixes and strip away commands that are already required by a preceding feature or extension
+        subset_functions = [Function(commands[name].returntype, commands[name].name[2:], commands[name].params) for name in subset.commands if name not in function_set]
+        function_set = function_set.union(subset.commands)
+            
+        functions.append((subset.name, subset_functions))
 
     return functions
 
@@ -379,3 +383,5 @@ def generate_source(options, version, enums, functions_by_category, passthru, ex
             generatedFiles += 1;
 
     print("Generated %d of %d files" % (generatedFiles, allFiles))
+
+    
