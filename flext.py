@@ -4,13 +4,17 @@ import os.path
 import re
 
 from glob     import glob
-from optparse import OptionParser
 
 import xml.etree.ElementTree as etree
 
 from wheezy.template.engine   import Engine
 from wheezy.template.ext.core import CoreExtension
 from wheezy.template.loader   import FileLoader
+
+
+################################################################################
+# Find the local directory for this file
+################################################################################
 
 script_dir = os.path.dirname(__file__)
 
@@ -21,43 +25,24 @@ script_dir += '/'
 spec_dir = script_dir + 'spec/'
 default_template_root = script_dir + 'templates/'
 
+
+################################################################################
+# Name and location for spec file(s)
+################################################################################
+
 specFileList = ['gl.xml']
-
 specURL = 'http://www.opengl.org/registry/api/'
-
 gl_xml_file = '%s/gl.xml' % spec_dir
 
 GL_API_NAME = 'gl'
 
+
+################################################################################
+# Spec file download
+################################################################################
+
 def file_age(filename):
     return (time.time() - os.path.getmtime(filename)) / 3600.0
-    
-
-def parse_args():
-    parser = OptionParser(usage='Usage: %prog [options] filename')
-    parser.add_option('-d', '--download',
-                      action='store_true', dest='download', default=False,
-                      help='Force (re-)downloading the spec files before parsing')
-    parser.add_option('-D', '--outdir', dest='outdir', default='generated',
-                      help='Output directory for generated source files')
-    parser.add_option('-T', '--template', dest='template', default='compatible',
-                      help='The template set to use for file generation')
-    parser.add_option('-t', '--template-dir', dest='template_dir', default=None,
-                      help='The directory to look for template files in. (overrides --template)')
-    options, args = parser.parse_args()
-
-    if len(args) < 1:
-        parser.print_help()
-        exit(0)
-    elif len(args) > 1:
-        parser.print_help()
-        exit(1)
-
-    if options.template_dir == None:
-        options.template_dir = default_template_root + options.template
-
-    return options, args[0]
-
 
 def download_spec(always_download = False):
     if not os.path.exists(spec_dir):
@@ -69,6 +54,11 @@ def download_spec(always_download = False):
             fileURL  = '%s%s' % (specURL, fileName)
             print ('Downloading %s' % fileURL)
             urllib.request.urlretrieve(fileURL, filePath)
+
+
+################################################################################
+# Profile file parsing
+################################################################################
 
 class Version():
     def __init__(self, major, minor, core):
@@ -82,18 +72,7 @@ class Version():
     def int_value(self):
         return 10 * self.major + self.minor;
 
-class Function:
-    def __init__(self, rettype, name, params):
-        self.name          = name
-        self.params        = params
-        self.returntype    = rettype
-
-    def param_list_string(self):
-        return 'void' if len(self.params) == 0 else ', '.join(['%s %s' % (t, p) for p,t in self.params])
-
-    def param_type_list_string(self):
-        return 'void' if len(self.params) == 0 else ', '.join(['%s' % t for p,t in self.params])
-
+    
 def parse_profile(filename):
     comment_pattern = re.compile('#.*$|\s+$')
     version_pattern = re.compile('version\s+(\d)\.(\d)\s*(core|compatibility|)\s*$')
@@ -131,31 +110,48 @@ def parse_profile(filename):
     
     return version, extensions
 
+
+################################################################################
+# XML spec file parsing
+################################################################################
+
+class Function:
+    def __init__(self, rettype, name, params):
+        self.name          = name
+        self.params        = params
+        self.returntype    = rettype
+
+    def param_list_string(self):
+        return 'void' if len(self.params) == 0 else ', '.join(['%s %s' % (t, p) for p,t in self.params])
+
+    def param_type_list_string(self):
+        return 'void' if len(self.params) == 0 else ', '.join(['%s' % t for p,t in self.params])
+
 class APISubset:
     def __init__(self, name, types, enums, commands):
         self.name     = name
         self.types    = types
         self.enums    = enums
         self.commands = commands
-
+       
 class Type:
     def __init__(self, name, definition, dependent):
         self.name       = name
         self.definition = definition
         self.dependent  = dependent
-
+        
 class Enum:
     def __init__(self, name, value):
         self.name  = name
         self.value = value
-
+        
 class Command:
     def __init__(self, rettype, name, params, requiredTypes):
         self.name          = name
         self.params        = params
         self.returntype    = rettype
         self.requiredTypes = requiredTypes
-
+        
 def safe_text(text):
     return '' if (text is None) else text
 
@@ -340,6 +336,11 @@ def parse_xml(version, extensions):
     functions    = generate_functions(subsets, commands)
 
     return passthru, enums, functions
+
+
+################################################################################
+# Source generation
+################################################################################
 
 def generate_source(options, version, enums, functions_by_category, passthru, extensions):
     generated_warning = '/* WARNING: This file was automatically generated */\n/* Do not edit. */\n'

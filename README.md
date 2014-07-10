@@ -8,7 +8,7 @@ It is a bit different than other comparable systems:
  * Gives complete control over exposed version and extensions
  * (Optionally) exports only core-profile functions
  * Only requested extensions are loaded
- * Bindings directly generated from opengl.org `*.spec` files
+ * Bindings directly generated from the OpenGL registry's `gl.xml` file
  * Flexible python template system for source-generation
  * Source templates easy to adapt to project requirements
 
@@ -19,10 +19,8 @@ You will need the following dependencies:
 
 ### What's new?
 
-This new version is a major rewrite that should make the spec parser quite 
-a bit more manageable.
+This parses `gl.xml` instead of the deprecated `.spec` files.
 
-Added support for Python 3 and replaced Cheetah with Wheezy for templating.
 
 Source tree
 -----------
@@ -30,6 +28,9 @@ Source tree
 * `flextGLgen.py`
   > The generator script.
 
+* `flext.py`
+  > The parsing code
+  
 * `templates/`
   > The  sub-directories  in here  contain the different  template sets.
   > You can  add your own  template by simply  creating a new  folder in 
@@ -76,6 +77,7 @@ build-system.
 You can find a small example program that demonstrates this for Make and CMake
 The example project demonstrates this for Make and CMake [here](https://github.com/ginkgo/flextGL-example).
 
+
 Generated API
 -------------
 
@@ -120,21 +122,20 @@ At the moment, there are two template sets available:
   > template, a pointer to the GLFWwindow has to be passed as a parameter
   > of `flextInit()`.
 
+  
 Installing Wheezy Template on Windows
 -------------------------------------
 
-The simplest way to install Wheezy Template on Windows is to install the
-Setuptools replacement [distribute](http://pypi.python.org/pypi/distribute/) by
-downloading and extracting the `distribute-*.tar.gz` package and running
-`distribute-setup.py` using Python 3.2.
+If you have Python 3.4+ installed you should be able to install Wheezy using pip.
 
-This will install the Setuptools scripts in `C:\python32\Scripts`. Add this
-folder to your path and call the following command in an Administrator
-commandline:
+    $ pip install --user wheezy.template
 
-`easy_install.exe wheezy.template`
+The `--user` does a local install in your home-folder. You can omit it if you want
+to do a system-wide installation.
 
-You should now be able to run flextGLgen.
+If you have an older version of Python or don't have pip for some reason, then
+you need to [install](https://pip.pypa.io/en/latest/installing.html) it first.
+
 
 Copyright
 ---------
@@ -143,5 +144,8 @@ The  "compatible"  template uses  a few  code  snippets  from Slavomir
 Kaslev's  gl3w  OpenGL core  profile loader  for  portable  loading of
 procedures and checking minor/major version in OpenGL < 3.0.
 
-    (C) Thomas Weber, 2011
+Mykhailo Parfeniuk([sopyer](https://github.com/sopyer)) provided most of the `gl.xml` parsing code.
+
+    (C) Thomas Weber, 2011-2014
         ginko (at) cg (dot) tuwien (dot) ac (dot) at
+        
