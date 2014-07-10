@@ -40,7 +40,7 @@ def parse_args():
         exit(1)
 
     if options.template_dir == None:
-        options.template_dir = default_template_root + options.template
+        options.template_dir = flext.default_template_root + options.template
 
     return options, args[0]
     
