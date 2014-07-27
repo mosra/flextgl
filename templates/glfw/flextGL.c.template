@@ -1,4 +1,6 @@
 @require(passthru, functions, enums, options, version, extensions)
+/* WARNING: This file was automatically generated */
+/* Do not edit. */
 
 #include "flextGL.h"
 #include "GL/glfw.h"

@@ -346,7 +346,6 @@ def parse_xml(version, extensions):
 ################################################################################
 
 def generate_source(options, version, enums, functions_by_category, passthru, extensions):
-    generated_warning = '/* WARNING: This file was automatically generated */\n/* Do not edit. */\n'
     template_pattern = re.compile("(.*).template")
 
     template_namespace = {'passthru'  : passthru,
@@ -381,7 +380,6 @@ def generate_source(options, version, enums, functions_by_category, passthru, ex
         allFiles += 1
 
         with open(outfile, 'w') as out:
-            out.write(generated_warning)
             out.write(template.render(template_namespace))
             print("Successfully generated %s" % outfile)
             generatedFiles += 1;
