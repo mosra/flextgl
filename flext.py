@@ -293,10 +293,13 @@ def generate_functions(subsets, commands):
     function_set = set()
     
     for subset in subsets:
-        #remove 'gl' suffixes and strip away commands that are already required by a preceding feature or extension
-        subset_functions = [Function(commands[name].returntype, commands[name].name[2:], commands[name].params) for name in subset.commands if name not in function_set]
-        function_set = function_set.union(subset.commands)
-            
+        #remove 'gl' suffixes and strip away commands that are already in the list
+        subset_functions = []
+        for name in subset.commands:
+            if name in function_set: continue
+            subset_functions.append(Function(commands[name].returntype, commands[name].name[2:], commands[name].params))
+            function_set.add(name)
+
         functions.append((subset.name, subset_functions))
 
     return functions
