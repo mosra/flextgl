@@ -164,7 +164,7 @@ def xml_extract_all_text(node, substitutes):
 
 def xml_parse_type_name_pair(node):
     name = node.find('name').text.strip()
-    type = xml_extract_all_text(node, {'name':''})
+    type = xml_extract_all_text(node, {'name':''}).strip()
     ptype = node.find('ptype')
     return (name, type, ptype.text.strip() if ptype != None else None)
 
@@ -274,7 +274,9 @@ def parse_xml_extensions(root, extensions):
 def generate_passthru(dependencies, types):
     passthru = ''
     for type in types:
-        if (type.name in dependencies): passthru += type.definition + '\n'
+        if (type.name in dependencies):
+            if passthru: passthru += '\n'
+            passthru += type.definition
 
     return passthru
 
@@ -282,9 +284,10 @@ def generate_enums(subsets, enums):
     enumsDecl = ''
     for subset in subsets:
         if subset.enums != []:
-            enumsDecl += '\n/* GL_%s */\n\n' % subset.name
+            if enumsDecl: enumsDecl += '\n\n'
+            enumsDecl += '/* GL_%s */\n' % subset.name
             for enumName in subset.enums:
-                enumsDecl += '#define %s %s\n' % (enumName, enums[enumName])
+                enumsDecl += '\n#define %s %s' % (enumName, enums[enumName])
 
     return enumsDecl
 
@@ -343,7 +346,6 @@ def parse_xml(version, extensions):
 ################################################################################
 
 def generate_source(options, version, enums, functions_by_category, passthru, extensions):
-    generated_warning = '/* WARNING: This file was automatically generated */\n/* Do not edit. */\n'
     template_pattern = re.compile("(.*).template")
 
     template_namespace = {'passthru'  : passthru,
@@ -378,7 +380,6 @@ def generate_source(options, version, enums, functions_by_category, passthru, ex
         allFiles += 1
 
         with open(outfile, 'w') as out:
-            out.write(generated_warning)
             out.write(template.render(template_namespace))
             print("Successfully generated %s" % outfile)
             generatedFiles += 1;
