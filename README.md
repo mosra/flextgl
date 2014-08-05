@@ -78,7 +78,6 @@ This  will  create  the  requested  source  code and  put  it  in  the
 
 The  best  way  to work  with  flextGL  is  to  integrate it  in  your
 build-system.
-You can find a small example program that demonstrates this for Make and CMake
 The example project demonstrates this for Make and CMake [here](https://github.com/ginkgo/flextGL-example).
 
 
@@ -109,7 +108,7 @@ Take a look at the example program to get an idea on how it's used.
 Templates
 ---------
 
-At the moment, there are two template sets available:
+At the moment, there are three template sets available:
 
 * `'compatible'`
   > This loads the extensions using a framework-agnostic method with WGL
