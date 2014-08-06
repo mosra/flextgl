@@ -75,7 +75,7 @@ class Version():
     
 def parse_profile(filename):
     comment_pattern = re.compile('#.*$|\s+$')
-    version_pattern = re.compile('version\s+(\d)\.(\d)\s*(core|compatibility|es1|es2|)\s*$')
+    version_pattern = re.compile('version\s+(\d)\.(\d)\s*(core|compatibility|es|)\s*$')
     extension_pattern = re.compile('extension\s+(\w+)\s+(required|optional)\s*$')
 
     version = None
@@ -90,7 +90,11 @@ def parse_profile(filename):
                 if version != None:
                     print ('Error (%s:%d): Duplicate version statement' % (filename,line_no))
                     exit(1)
-                version = Version(match.group(1), match.group(2), match.group(3))
+                if match.group(3) == 'es':
+                    version = Version(match.group(1), match.group(2), 'es1' if match.group(1) == '1' else 'es2')
+                else:
+                    version = Version(match.group(1), match.group(2), match.group(3))
+                    
                 continue
 
             match = extension_pattern.match(line)
