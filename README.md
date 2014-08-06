@@ -65,7 +65,7 @@ cause  an error.  Instead, the  programmer will  have to  check before
 using  it. This  can  be easily  done  by testing  a generated  global
 variable. For OpenGL ES a typical profile might look like:
 
-    version 3.0 es2
+    version 3.0 es
     extension OES_standard_derivatives optional
     extension OES_vertex_array_object optional
 
