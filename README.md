@@ -19,10 +19,10 @@ You will need the following dependencies:
 
 ### What's new?
 
-* 8/7/14
+* August 7 2014
   > Adding support for generating OpenGL ES loading code
   
-* 7/10/14
+* July 10 2014
   > flextGL now parses `gl.xml` instead of the deprecated `.spec` files.
 
 
@@ -155,6 +155,7 @@ Kaslev's  gl3w  OpenGL core  profile loader  for  portable  loading of
 procedures and checking minor/major version in OpenGL < 3.0.
 
 Mykhailo Parfeniuk([sopyer](https://github.com/sopyer)) provided most of the `gl.xml` parsing code.
+
 Vladimír Vondruš([mosra](https://github.com/mosra)) added support for OpenGL ES loader generation.
 
     (C) Thomas Weber, 2011-2014
