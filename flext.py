@@ -34,8 +34,6 @@ specFileList = ['gl.xml']
 specURL = 'http://www.opengl.org/registry/api/'
 gl_xml_file = '%s/gl.xml' % spec_dir
 
-GL_API_NAME = 'gl'
-
 
 ################################################################################
 # Spec file download
@@ -61,13 +59,15 @@ def download_spec(always_download = False):
 ################################################################################
 
 class Version():
-    def __init__(self, major, minor, core):
+    def __init__(self, major, minor, profile_or_api):
+        self.api = 'gl' + profile_or_api if profile_or_api in ['es1', 'es2'] else 'gl'
         self.major = int(major)
         self.minor = int(minor)
-        self.core = core
+        self.profile = profile_or_api if self.api == 'gl' else ''
 
     def __str__(self):
-        return 'OpenGL %d.%d %s' % (self.major, self.minor, 'core' if self.core else 'compatibility')
+        return 'OpenGL %d.%d %s' % (self.major, self.minor, self.profile) \
+            if self.api == 'gl' else 'OpenGL ES %d.%d' % (self.major, self.minor)
 
     def int_value(self):
         return 10 * self.major + self.minor;
@@ -75,7 +75,7 @@ class Version():
     
 def parse_profile(filename):
     comment_pattern = re.compile('#.*$|\s+$')
-    version_pattern = re.compile('version\s+(\d)\.(\d)\s*(core|compatibility|)\s*$')
+    version_pattern = re.compile('version\s+(\d)\.(\d)\s*(core|compatibility|es|)\s*$')
     extension_pattern = re.compile('extension\s+(\w+)\s+(required|optional)\s*$')
 
     version = None
@@ -90,7 +90,11 @@ def parse_profile(filename):
                 if version != None:
                     print ('Error (%s:%d): Duplicate version statement' % (filename,line_no))
                     exit(1)
-                version = Version(match.group(1), match.group(2), match.group(3) == 'core')
+                if match.group(3) == 'es':
+                    version = Version(match.group(1), match.group(2), 'es1' if match.group(1) == '1' else 'es2')
+                else:
+                    version = Version(match.group(1), match.group(2), match.group(3))
+                    
                 continue
 
             match = extension_pattern.match(line)
@@ -176,22 +180,22 @@ def parse_int_version(version_str):
     match = version_pattern.match(version_str)
     return int(match.group(1)) * 10 + int(match.group(2))
 
-def parse_xml_enums(root):
+def parse_xml_enums(root, api):
     enums = {}
 
     for enum in root.findall("./enums/enum"):
-        if ('api' in enum.attrib and enum.attrib['api'] != GL_API_NAME): continue
+        if ('api' in enum.attrib and enum.attrib['api'] != api): continue
         name  = enum.attrib['name']
         value = "%s%s" % (enum.attrib['value'], enum.attrib['type']) if 'type' in enum.attrib else enum.attrib['value']
         enums[name] = value
 
     return enums
 
-def parse_xml_types(root):
+def parse_xml_types(root, api):
     types = []
 
     for type in root.findall("./types/type"):
-        if ('api' in type.attrib and type.attrib['api'] != GL_API_NAME): continue
+        if ('api' in type.attrib and type.attrib['api'] != api): continue
 
         name = type.attrib['name'] if 'name'in type.attrib else type.find('./name').text
         definition = xml_extract_all_text(type, {'apientry' : 'APIENTRY'})
@@ -222,11 +226,10 @@ def parse_xml_commands(root):
 
     return commands
 
-def parse_xml_features(root, int_version, core):
+def parse_xml_features(root, int_version, api, profile):
     subsets = []
-    profileStr = 'core' if core else 'compatibility'
 
-    for feature in root.findall("./feature[@api='%s'][@name][@number]" % GL_API_NAME):
+    for feature in root.findall("./feature[@api='%s'][@name][@number]" % api):
         if (parse_int_version(feature.attrib['number'])>int_version):
             continue
 
@@ -237,7 +240,7 @@ def parse_xml_features(root, int_version, core):
         commandList = []
 
         for actionSet in list(feature):
-            if 'profile' in actionSet.attrib and actionSet.attrib['profile'] != profileStr:
+            if api == 'gl' and 'profile' in actionSet.attrib and actionSet.attrib['profile'] != profile:
                 continue
 
             if actionSet.tag == 'require':
@@ -296,10 +299,13 @@ def generate_functions(subsets, commands):
     function_set = set()
     
     for subset in subsets:
-        #remove 'gl' suffixes and strip away commands that are already required by a preceding feature or extension
-        subset_functions = [Function(commands[name].returntype, commands[name].name[2:], commands[name].params) for name in subset.commands if name not in function_set]
-        function_set = function_set.union(subset.commands)
-            
+        #remove 'gl' suffixes and strip away commands that are already in the list
+        subset_functions = []
+        for name in subset.commands:
+            if name in function_set: continue
+            subset_functions.append(Function(commands[name].returntype, commands[name].name[2:], commands[name].params))
+            function_set.add(name)
+
         functions.append((subset.name, subset_functions))
 
     return functions
@@ -322,11 +328,11 @@ def parse_xml(version, extensions):
     tree = etree.parse(gl_xml_file)
     root = tree.getroot()
 
-    types    = parse_xml_types(root)
-    enums    = parse_xml_enums(root)
+    types    = parse_xml_types(root, version.api)
+    enums    = parse_xml_enums(root, version.api)
     commands = parse_xml_commands(root)
 
-    subsetsGL  = parse_xml_features  (root, version.int_value(), version.core)
+    subsetsGL  = parse_xml_features  (root, version.int_value(), version.api, version.profile)
     subsetsEXT = parse_xml_extensions(root, extensions)
 
     subsets  = subsetsGL

@@ -73,7 +73,7 @@ int flextInit(void);
 
 #define FLEXT_MAJOR_VERSION @version.major!s
 #define FLEXT_MINOR_VERSION @version.minor!s
-@if version.core:
+@if version.profile == 'core':
 #define FLEXT_CORE_PROFILE 1
 @else:
 #define FLEXT_CORE_PROFILE 0

@@ -1,6 +1,4 @@
 @require(passthru, functions, enums, options, version, extensions)
-/* WARNING: This file was automatically generated */
-/* Do not edit. */
 
 #ifndef __gl_h_
 #define __gl_h_
@@ -43,7 +41,7 @@ extern "C" {
 
 /* GL_@cat */
 
-    @if cat in ['VERSION_1_0', 'VERSION_1_1','VERSION_1_0_DEPRECATED', 'VERSION_1_1_DEPRECATED']:
+    @if cat in ['ES_VERSION_2_0', 'ES_VERSION_3_0']:
         @for f in funcs:
 GLAPI @f.returntype APIENTRY gl@f.name (@f.param_list_string());
         @end
@@ -69,15 +67,13 @@ GLAPI PFNGL@f.name.upper()_PROC* glpf@f.name;
 extern int FLEXT_@extension;
 @end
 
-int flextInit(void);
+struct GLFWwindow;
+typedef struct GLFWwindow GLFWwindow;
+
+int flextInit(GLFWwindow* window);
 
 #define FLEXT_MAJOR_VERSION @version.major!s
 #define FLEXT_MINOR_VERSION @version.minor!s
-@if version.profile=='core':
-#define FLEXT_CORE_PROFILE 1
-@else:
-#define FLEXT_CORE_PROFILE 0
-@end
 
 #ifdef __cplusplus
 }

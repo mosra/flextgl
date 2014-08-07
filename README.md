@@ -63,7 +63,11 @@ anisotropic filtering and  tesselation shaders. Those extensions  were
 requested  as 'optional'. This  means that  a missing  extension won't
 cause  an error.  Instead, the  programmer will  have to  check before
 using  it. This  can  be easily  done  by testing  a generated  global
-variable.
+variable. For OpenGL ES a typical profile might look like:
+
+    version 3.0 es
+    extension OES_standard_derivatives optional
+    extension OES_vertex_array_object optional
 
 The profile file is then passed to the script like this:
 

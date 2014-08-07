@@ -17,7 +17,7 @@ void flextLoadOpenGLFunctions(void);
 
 int flextInit(GLFWwindow* window)
 {
-    @if version.int_value() >= 32 and not version.core:
+    @if version.int_value() >= 32 and not version.profile == 'core':
     GLint profile;
     @end
   
@@ -35,7 +35,7 @@ int flextInit(GLFWwindow* window)
         return GL_FALSE;
     }
 
-    @if version.int_value() >= 32 and not version.core:
+    @if version.int_value() >= 32 and not version.profile == 'core':
     glGetIntegerv(GL_CONTEXT_PROFILE_MASK, &profile);
 
     if ((profile & GL_CONTEXT_COMPATIBILITY_PROFILE_BIT) == 0) {
