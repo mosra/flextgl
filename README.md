@@ -19,7 +19,11 @@ You will need the following dependencies:
 
 ### What's new?
 
-This parses `gl.xml` instead of the deprecated `.spec` files.
+* 8/7/14
+  > Adding support for generating OpenGL ES loading code
+  
+* 7/10/14
+  > flextGL now parses `gl.xml` instead of the deprecated `.spec` files.
 
 
 Source tree
@@ -125,6 +129,9 @@ At the moment, there are three template sets available:
   > template, a pointer to the GLFWwindow has to be passed as a parameter
   > of `flextInit()`.
 
+* `'glfw3-es'`
+  > Used for generating OpenGL ES loading code.
+
   
 Installing Wheezy Template on Windows
 -------------------------------------
@@ -148,6 +155,7 @@ Kaslev's  gl3w  OpenGL core  profile loader  for  portable  loading of
 procedures and checking minor/major version in OpenGL < 3.0.
 
 Mykhailo Parfeniuk([sopyer](https://github.com/sopyer)) provided most of the `gl.xml` parsing code.
+Vladimír Vondruš([mosra](https://github.com/mosra)) added support for OpenGL ES loader generation.
 
     (C) Thomas Weber, 2011-2014
         ginko (at) cg (dot) tuwien (dot) ac (dot) at
