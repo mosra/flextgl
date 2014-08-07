@@ -19,11 +19,9 @@ You will need the following dependencies:
 
 ### What's new?
 
-* August 7 2014
-  > Adding support for generating OpenGL ES loading code
+* **August 7 2014:** Adding support for generating OpenGL ES loading code
   
-* July 10 2014
-  > flextGL now parses `gl.xml` instead of the deprecated `.spec` files.
+* **July 10 2014:** flextGL now parses `gl.xml` instead of the deprecated `.spec` files.
 
 
 Source tree
