@@ -61,6 +61,12 @@ GLAPI PFNGL@f.name.upper()_PROC* glpf@f.name;
 
 @end
 
+/* --------------------------- CATEGORY DEFINES ------------------------------ */
+
+@for cat,funcs in functions:
+#define GL_@cat
+@end
+
 /* ---------------------- Flags for optional extensions ---------------------- */
 
 @for extension,required in extensions:
