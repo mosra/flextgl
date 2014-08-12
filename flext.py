@@ -139,7 +139,8 @@ class APISubset:
         self.commands = commands
        
 class Type:
-    def __init__(self, name, definition, dependent):
+    def __init__(self, api, name, definition, dependent):
+        self.api        = api
         self.name       = name
         self.definition = definition
         self.dependent  = dependent
@@ -200,9 +201,23 @@ def parse_xml_types(root, api):
         name = type.attrib['name'] if 'name'in type.attrib else type.find('./name').text
         definition = xml_extract_all_text(type, {'apientry' : 'APIENTRY'})
 
-        types.append(Type(name, definition, type.attrib['requires'] if 'requires' in type.attrib else None))
+        types.append(Type(type.attrib['api'] if 'api' in type.attrib else None, name, definition, type.attrib['requires'] if 'requires' in type.attrib else None))
 
-    return types
+    # Go through type list and keep only unique names. Because the
+    # specializations are at the end, going in reverse will select only the
+    # most specialized ones.
+    unique_type_names = {}
+    unique_types = []
+    for type in reversed(types):
+        # Skip the entry if the type is already defined with better
+        # specialization for this API
+        if type.name in unique_type_names and not type.api and unique_type_names[type.name]: continue
+
+        unique_type_names[type.name] = type.api
+        unique_types.append(type)
+
+    # Reverse the list again to keep the original order
+    return [t for t in reversed(unique_types)]
 
 def parse_xml_commands(root):
     commands = {}
