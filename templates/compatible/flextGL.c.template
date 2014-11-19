@@ -8,12 +8,28 @@
 #include <string.h>
 #include <stdlib.h>
 
+#if defined(_WIN32) || defined(WIN32) 
+#define FLEXT_CALL __stdcall
+#else
+#define FLEXT_CALL
+#endif
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef void(__stdcall *GLPROC)();
+/* FLEX_C_EXTENSION
+ * Compiling in strict c leads to errors due to void* to function ptr
+ * cast being illegal. Mark as extension so that the compiler will 
+ * accept it.
+ */
+#if defined(__GNUC__)
+#define FLEXT_C_EXTENSION(x) __extension__(x)
+#else
+#define FLEXT_C_EXTENSION(x) x
+#endif
+
+typedef void(FLEXT_CALL *GLPROC)();
 
 void flextLoadOpenGLFunctions(void);
 
@@ -59,29 +75,14 @@ int flextInit(void)
     }
     @end
 
-    if (10 * major + minor < @version.int_value()!s) {
-        fprintf(stderr, "Error: OpenGL version @version.major!s.@version.minor!s not supported.\n");
-        fprintf(stderr, "       Your version is %d.%d.\n", major, minor);
-        fprintf(stderr, "       Try updating your graphics driver.\n");
-        return GL_FALSE;
-    }
-
-    @if version.int_value() >= 32 and not version.profile == 'core':
-    
-    glGetIntegerv(GL_CONTEXT_PROFILE_MASK, &profile);
-
-    if ((profile & GL_CONTEXT_COMPATIBILITY_PROFILE_BIT) == 0) {
-        fprintf(stderr, "Error: This application requires a compatibility profile\n");
-        return GL_FALSE;
-    }
-    @end
-    
     /* --- Check for minimal version and profile --- */
 
     if (major * 10 + minor < @version.int_value()!s) {
-    fprintf(stderr, "Error: OpenGL version @version.major!s.@version.minor!s not supported.\n");
+#if !defined(FLEXT_NO_LOGGING)	
+        fprintf(stderr, "Error: OpenGL version @version.major!s.@version.minor!s not supported.\n");
         fprintf(stderr, "       Your version is %d.%d.\n", major, minor);
         fprintf(stderr, "       Try updating your graphics driver.\n");
+#endif
         return GL_FALSE;
     }
 
@@ -89,7 +90,9 @@ int flextInit(void)
     glGetIntegerv(GL_CONTEXT_PROFILE_MASK, &profile);
 
     if ((profile & GL_CONTEXT_COMPATIBILITY_PROFILE_BIT) == 0) {
-    fprintf(stderr, "Error: This application requires a compatibility profile\n");
+#if !defined(FLEXT_NO_LOGGING)	
+        fprintf(stderr, "Error: This application requires a compatibility profile\n");
+#endif 
         return GL_FALSE;
     }
     @end
@@ -265,8 +268,10 @@ static GLPROC get_proc(const char *proc)
 
     res = glXGetProcAddress((const GLubyte *) proc);
     if (!res)
-        res = dlsym(libgl, proc);
-    return res;
+		{
+        FLEXT_C_EXTENSION(res = dlsym(libgl, proc));
+    }
+		return res;
 }
 #endif
 
