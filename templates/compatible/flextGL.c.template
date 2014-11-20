@@ -23,7 +23,7 @@ extern "C" {
  * cast being illegal. Mark as extension so that the compiler will 
  * accept it.
  */
-#if defined(__GNUC__)
+#if defined(__GNUC__) || defined(__clang__)
 #define FLEXT_C_EXTENSION(x) __extension__(x)
 #else
 #define FLEXT_C_EXTENSION(x) x
@@ -242,7 +242,7 @@ static GLPROC get_proc(const char *proc)
 
     CFStringRef procname = CFStringCreateWithCString(kCFAllocatorDefault, proc,
                 kCFStringEncodingASCII);
-    res = CFBundleGetFunctionPointerForName(bundle, procname);
+    FLEXT_C_EXTENSION(res = CFBundleGetFunctionPointerForName(bundle, procname));
     CFRelease(procname);
     return res;
 }
