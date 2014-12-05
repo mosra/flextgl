@@ -18,7 +18,7 @@
 extern "C" {
 #endif
 
-/* FLEX_C_EXTENSION
+/* FLEXT_C_EXTENSION
  * Compiling in strict c leads to errors due to void* to function ptr
  * cast being illegal. Mark as extension so that the compiler will 
  * accept it.
@@ -267,11 +267,10 @@ static GLPROC get_proc(const char *proc)
     GLPROC res;
 
     res = glXGetProcAddress((const GLubyte *) proc);
-    if (!res)
-		{
+    if (!res) {
         FLEXT_C_EXTENSION(res = dlsym(libgl, proc));
     }
-		return res;
+    return res;
 }
 #endif
 
