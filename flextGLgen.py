@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 
 from optparse import OptionParser
 
@@ -14,10 +14,11 @@ def main():
     flext.download_spec(options.download)
 
     # Parse spec
-    passthru, enums, functions = flext.parse_xml(version, extensions)
+    passthru, enums, functions, types, raw_enums = flext.parse_xml(version, extensions)
 
     # Generate source from templates
-    flext.generate_source(options, version, enums, functions, passthru, extensions)
+    flext.generate_source(options, version, enums, functions, passthru,
+                          extensions, types, raw_enums)
 
     
 def parse_args():

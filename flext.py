@@ -9,8 +9,8 @@ import xml.etree.ElementTree as etree
 
 from wheezy.template.engine   import Engine
 from wheezy.template.ext.core import CoreExtension
+from wheezy.template.ext.code import CodeExtension
 from wheezy.template.loader   import FileLoader
-
 
 ################################################################################
 # Find the local directory for this file
@@ -344,7 +344,7 @@ def parse_xml(version, extensions):
     root = tree.getroot()
 
     types    = parse_xml_types(root, version.api)
-    enums    = parse_xml_enums(root, version.api)
+    raw_enums    = parse_xml_enums(root, version.api)
     commands = parse_xml_commands(root)
 
     subsetsGL  = parse_xml_features  (root, version.int_value(), version.api, version.profile)
@@ -356,25 +356,33 @@ def parse_xml(version, extensions):
     requiredTypes = resolve_type_dependencies(subsets, types, commands)
 
     passthru     = generate_passthru(requiredTypes, types)
-    enums        = generate_enums(subsets, enums)
+    enums        = generate_enums(subsets, raw_enums)
     functions    = generate_functions(subsets, commands)
 
-    return passthru, enums, functions
+    return passthru, enums, functions, types, raw_enums
 
 
 ################################################################################
 # Source generation
 ################################################################################
 
-def generate_source(options, version, enums, functions_by_category, passthru, extensions):
+def generate_source(options, version, enums, functions_by_category, passthru, extensions, types, raw_enums):
     template_pattern = re.compile("(.*).template")
+
+    # Sort by categories and sort the functions inside the categories
+    functions_by_category = sorted(functions_by_category
+                                  ,key=lambda x: x[0])
+    functions_by_category = list(map(lambda c: (c[0], sorted(c[1], key=lambda x: x.name))
+                                ,functions_by_category))
 
     template_namespace = {'passthru'  : passthru,
                           'functions' : functions_by_category,
                           'enums'     : enums,
                           'options'   : options,
                           'version'   : version,
-                          'extensions': extensions}
+                          'extensions': extensions,
+                          'types': types,
+                          'raw_enums': raw_enums}
     if not os.path.isdir(options.template_dir):
         print ('%s is not a directory' % options.template_dir)
         exit(1)
@@ -386,7 +394,7 @@ def generate_source(options, version, enums, functions_by_category, passthru, ex
     if not os.path.exists(options.outdir):
         os.mkdir(options.outdir)
 
-    engine = Engine(loader=FileLoader([options.template_dir]), extensions=[CoreExtension()])
+    engine = Engine(loader=FileLoader([options.template_dir]),extensions=[CoreExtension(),CodeExtension()])
     
     generatedFiles = 0
     allFiles       = 0;
