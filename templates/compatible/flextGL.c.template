@@ -246,6 +246,25 @@ static GLPROC get_proc(const char *proc)
     CFRelease(procname);
     return res;
 }
+#elif defined(ANDROID)
+#include <EGL/egl.h>
+
+static void open_libgl(void)
+{
+    // nothing to do
+}
+
+static void close_libgl(void)
+{
+    // nothing to do
+}
+
+static GLPROC get_proc(const char *proc)
+{
+    GLPROC res;
+    res = eglGetProcAddress((const char *) proc);
+    return res;
+}
 #else
 #include <dlfcn.h>
 #include <GL/glx.h>
