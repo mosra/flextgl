@@ -309,7 +309,7 @@ def generate_enums(subsets, enums):
 
     return enumsDecl
 
-def generate_functions(subsets, commands):
+def generate_functions(subsets, commands, funcslist):
     functions = []
     function_set = set()
     
@@ -318,6 +318,7 @@ def generate_functions(subsets, commands):
         subset_functions = []
         for name in subset.commands:
             if name in function_set: continue
+            if funcslist and name[2:] not in funcslist: continue
             subset_functions.append(Function(commands[name].returntype, commands[name].name[2:], commands[name].params))
             function_set.add(name)
 
@@ -339,7 +340,7 @@ def resolve_type_dependencies(subsets, types, commands):
 
     return requiredTypes
 
-def parse_xml(version, extensions):
+def parse_xml(version, extensions, funcslist):
     tree = etree.parse(gl_xml_file)
     root = tree.getroot()
 
@@ -357,7 +358,7 @@ def parse_xml(version, extensions):
 
     passthru     = generate_passthru(requiredTypes, types)
     enums        = generate_enums(subsets, raw_enums)
-    functions    = generate_functions(subsets, commands)
+    functions    = generate_functions(subsets, commands, funcslist)
 
     return passthru, enums, functions, types, raw_enums
 

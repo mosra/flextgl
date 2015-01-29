@@ -10,11 +10,21 @@ def main():
     options,profile = parse_args()    
     version,extensions = flext.parse_profile(profile)
 
+    funcslist = []
+    if options.funcslist:
+        with open(options.funcslist) as fl:
+            fs = fl.read()
+            funcslist = fs.split()
+        #Functions needed by loader code
+        funcslist.append("GetIntegerv")
+        funcslist.append("GetStringi")
+        funcslist = set(funcslist)
+
     # Download spec file(s) if necessary
     flext.download_spec(options.download)
 
     # Parse spec
-    passthru, enums, functions, types, raw_enums = flext.parse_xml(version, extensions)
+    passthru, enums, functions, types, raw_enums = flext.parse_xml(version, extensions, funcslist)
 
     # Generate source from templates
     flext.generate_source(options, version, enums, functions, passthru,
@@ -32,6 +42,8 @@ def parse_args():
                       help='The template set to use for file generation')
     parser.add_option('-t', '--template-dir', dest='template_dir', default=None,
                       help='The directory to look for template files in. (overrides --template)')
+    parser.add_option('-F', '--funcslist', dest='funcslist', default=None,
+                      help='File with a list of gl functions used by your program (prevents loading unnecessary funcs)')
     options, args = parser.parse_args()
 
     if len(args) < 1:
