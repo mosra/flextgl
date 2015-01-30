@@ -11,6 +11,7 @@ It is a bit different than other comparable systems:
  * Bindings directly generated from the OpenGL registry's `gl.xml` file
  * Flexible python template system for source-generation
  * Source templates easy to adapt to project requirements
+ * Explicitly define the functions that need to be loaded(optional)
 
 You will need the following dependencies:
 
@@ -18,6 +19,8 @@ You will need the following dependencies:
  * [Wheezy Template](http://packages.python.org/wheezy.template)
 
 ### What's new?
+
+* **January 30 2015:** Adding function whitelist and `list` template
 
 * **August 7 2014:** Adding support for generating OpenGL ES loading code
   
@@ -130,7 +133,9 @@ At the moment, there are three template sets available:
 * `'glfw3-es'`
   > Used for generating OpenGL ES loading code.
 
-  
+* `'lite'`
+  > A variant of the `compatible` template that generates more compact code
+
 Installing Wheezy Template on Windows
 -------------------------------------
 
@@ -156,6 +161,10 @@ Mykhailo Parfeniuk([sopyer](https://github.com/sopyer)) provided most of the `gl
 
 Vladimír Vondruš([mosra](https://github.com/mosra)) added support for OpenGL ES loader generation.
 
-    (C) Thomas Weber, 2011-2014
+Leander Beernaert([LeanderBB](https://github.com/LeanderBB)) did various fixes on the compatible template.
+
+[eternalrain](https://github.com/eternalrain) added support for function white-lists and created the `lite` template.
+
+    (C) Thomas Weber, 2011-2015
         ginko (at) cg (dot) tuwien (dot) ac (dot) at
         

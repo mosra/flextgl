@@ -26,3 +26,39 @@ extension ARB_gpu_shader5 required
 # error message.
 # Optional extensions will create the FLEXTGL_<extname> GLboolean fields
 # for checking if an extension is supported.
+
+
+# An optional whitelist of functions to load can be supplied
+# This allows reducing the generated code size and loading times
+# 'begin functions' starts a space-separated list of functions to be loaded and
+# 'end functions' ends it. Comments still work.
+# The 'gl' at the beginning of function names should be omitted
+
+begin functions
+
+   # Basic functions
+   Enable GetError Clear
+
+   # Shader handling
+   GetShaderInfoLog GetShaderiv ShaderSource
+   CreateShader DeleteShader IsShader CompileShader AttachShader
+
+   # Program Objects
+   CreateProgram DeleteProgram GetProgramInfoLog GetProgramiv
+   UseProgram IsProgram LinkProgram
+
+   # Uniforms
+   GetUniformLocation Uniform1f Uniform3fv Uniform4fv
+   UniformMatrix3fv UniformMatrix4fv
+
+   # Buffer handling
+   GenBuffers BindBuffer BufferData DeleteBuffers
+
+   # Vertex Arrays
+   GenVertexArrays BindVertexArray DeleteVertexArrays
+   VertexAttribPointer EnableVertexAttribArray GetAttribLocation
+
+   # Drawing
+   DrawElements
+   
+end functions
