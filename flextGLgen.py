@@ -8,17 +8,7 @@ import flext
 def main():
     # Read command line arguments and profile settings
     options,profile = parse_args()    
-    version,extensions = flext.parse_profile(profile)
-
-    funcslist = []
-    if options.funcslist:
-        with open(options.funcslist) as fl:
-            fs = fl.read()
-            funcslist = fs.split()
-        #Functions needed by loader code
-        funcslist.append("GetIntegerv")
-        funcslist.append("GetStringi")
-        funcslist = set(funcslist)
+    version,extensions,funcslist = flext.parse_profile(profile)
 
     # Download spec file(s) if necessary
     flext.download_spec(options.download)
@@ -42,8 +32,6 @@ def parse_args():
                       help='The template set to use for file generation')
     parser.add_option('-t', '--template-dir', dest='template_dir', default=None,
                       help='The directory to look for template files in. (overrides --template)')
-    parser.add_option('-F', '--funcslist', dest='funcslist', default=None,
-                      help='File with a list of gl functions used by your program (prevents loading unnecessary funcs)')
     options, args = parser.parse_args()
 
     if len(args) < 1:

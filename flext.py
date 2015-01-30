@@ -74,17 +74,50 @@ class Version():
 
     
 def parse_profile(filename):
-    comment_pattern = re.compile('#.*$|\s+$')
-    version_pattern = re.compile('version\s+(\d)\.(\d)\s*(core|compatibility|es|)\s*$')
-    extension_pattern = re.compile('extension\s+(\w+)\s+(required|optional)\s*$')
+    comment_pattern = re.compile('\s*#.*$|\s+$')
+    version_pattern = re.compile('\s*version\s+(\d)\.(\d)\s*(core|compatibility|es|)\s*$')
+    extension_pattern = re.compile('\s*extension\s+(\w+)\s+(required|optional)\s*$')
+    functions_pattern = re.compile('\s*(begin|end) functions$')
+    function_pattern = re.compile('\s*[A-Z][A-Za-z0-9]+$')
 
     version = None
     extensions = []
     extension_set = set()
+    funcslist = []    
+
+    function_mode = False
 
     with open(filename, 'r') as file:
         for line_no,line in enumerate(file, start=1):
+            
+            # Comment: ignore line
+            match = comment_pattern.match(line)
+            if match:
+                continue
 
+            # Begin/End Function list mode
+            match = functions_pattern.match(line)
+            if match:
+                if function_mode == False and match.group(1) == 'begin':
+                    function_mode = True
+                    continue
+                elif function_mode == True and match.group(1) == 'end':
+                    function_mode = False
+                    continue
+                else:
+                    print ('Mismatched \'begin/end function\' (%s:%d): %s' % (filename, line_no, line))
+                    exit(1)
+
+            # Parse functions if in function list mode
+            if function_mode:
+                for name in line.split():
+                    if not function_pattern.match(name):
+                        print ('\'%s\' does not appear to be a valid OpenGL function name (%s:%d): %s' % (name, filename, line_no, line))
+                        exit(1)
+                    funcslist.append(name)
+                continue                
+
+            # Version command
             match = version_pattern.match(line)
             if match:
                 if version != None:
@@ -97,6 +130,7 @@ def parse_profile(filename):
                     
                 continue
 
+            # Extension command
             match = extension_pattern.match(line)
             if match:            
                 if match.group(1) in extension_set:
@@ -107,12 +141,16 @@ def parse_profile(filename):
                 extensions.append((match.group(1), match.group(2) == 'required'))
                 continue
 
-            match = comment_pattern.match(line)
-            if not match:
-                print ('Syntax Error (%s:%d): %s' % (filename, line_no, line))
-                exit(1)
+            # Unknown command: Error
+            print ('Syntax Error (%s:%d): %s' % (filename, line_no, line))
+            exit(1)
+
+    if funcslist:
+        #Functions needed by loader code
+        funcslist.append("GetIntegerv")
+        funcslist.append("GetStringi")        
     
-    return version, extensions
+    return version, extensions, set(funcslist)
 
 
 ################################################################################
