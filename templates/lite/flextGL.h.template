@@ -54,8 +54,10 @@ typedef @f.returntype (APIENTRY PFNGL@f.name.upper()_PROC (@f.param_list_string(
     @end
 @end
 
-typedef struct {
-    
+typedef union {
+void * fp[@str(sum((len(f) if c not in ['VERSION_1_0', 'VERSION_1_1','VERSION_1_0_DEPRECATED', 'VERSION_1_1_DEPRECATED' ] else 0) for c, f in functions))];
+struct {
+
 @for cat,funcs in functions:
     @if cat not in ['VERSION_1_0', 'VERSION_1_1','VERSION_1_0_DEPRECATED', 'VERSION_1_1_DEPRECATED']:
         @for f in funcs:
@@ -63,7 +65,7 @@ PFNGL@f.name.upper()_PROC *@f.name;
         @end
     @end
 @end
-} GLPF;
+};} GLPF;
 extern GLPF glpf;
 
 @for cat,funcs in functions:
