@@ -20,7 +20,7 @@ You will need the following dependencies:
 
 ### What's new?
 
-* **January 30 2015:** Adding function whitelist and `list` template
+* **January 30 2015:** Adding function whitelist and `lite` template
 
 * **August 7 2014:** Adding support for generating OpenGL ES loading code
   
@@ -117,8 +117,7 @@ At the moment, there are three template sets available:
 
 * `'compatible'`
   > This loads the extensions using a framework-agnostic method with WGL
-  > AGL or GLX. This  is  probably the sensible default for most people.
-  > It has not been thoroughly tested yet, though.
+  > AGL or GLX. This  is  probably a sensible default for most people.
 
 * `'glfw'`
   > This  uses  GLFW 2's functions  for  loading  and  testing for  OpenGL
@@ -135,6 +134,7 @@ At the moment, there are three template sets available:
 
 * `'lite'`
   > A variant of the `compatible` template that generates more compact code
+  > It has not been thoroughly tested yet, though.
 
 Installing Wheezy Template on Windows
 -------------------------------------
