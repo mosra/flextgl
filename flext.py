@@ -60,9 +60,11 @@ def download_spec(always_download = False):
 
 class Version():
     def __init__(self, major, minor, profile_or_api):
+        # 'gl', 'gles1' or 'gles2'
         self.api = 'gl' + profile_or_api if profile_or_api in ['es1', 'es2'] else 'gl'
         self.major = int(major)
         self.minor = int(minor)
+        # 'core' or 'compatibility'
         self.profile = profile_or_api if self.api == 'gl' else ''
 
     def __str__(self):
