@@ -60,9 +60,11 @@ def download_spec(always_download = False):
 
 class Version():
     def __init__(self, major, minor, profile_or_api):
+        # 'gl', 'gles1' or 'gles2'
         self.api = 'gl' + profile_or_api if profile_or_api in ['es1', 'es2'] else 'gl'
         self.major = int(major)
         self.minor = int(minor)
+        # 'core' or 'compatibility'
         self.profile = profile_or_api if self.api == 'gl' else ''
 
     def __str__(self):
@@ -311,7 +313,7 @@ def parse_xml_features(root, int_version, api, profile):
 
     return subsets
 
-def parse_xml_extensions(root, extensions):
+def parse_xml_extensions(root, extensions, api, profile):
     removedEnums    = set()
     removedTypes    = set()
     removedCommands = set()
@@ -323,7 +325,23 @@ def parse_xml_extensions(root, extensions):
         if (extension==None):
             print ('%s is not an extension' % name)
             continue
-        subsets.append(APISubset(name, extract_names(extension, 'require/type'), extract_names(extension, 'require/enum'), extract_names(extension, 'require/command')))
+
+        subsetTypes = []
+        subsetEnums = []
+        subsetCommands = []
+
+        for require in extension.findall('./require'):
+            # Given set of names is restricted to some API or profile subset
+            # (e.g. KHR_debug has different set of names for 'gl' and 'gles2')
+            if 'api' in require.attrib:
+                if require.attrib['api'] != api: continue
+                if 'profile' in require.attrib and require.attrib['profile'] != profile: continue
+
+            subsetTypes += extract_names(require, 'type')
+            subsetEnums += extract_names(require, 'enum')
+            subsetCommands += extract_names(require, 'command')
+
+        subsets.append(APISubset(name, subsetTypes, subsetEnums, subsetCommands))
 
     return subsets
 
@@ -387,7 +405,7 @@ def parse_xml(version, extensions, funcslist):
     commands = parse_xml_commands(root)
 
     subsetsGL  = parse_xml_features  (root, version.int_value(), version.api, version.profile)
-    subsetsEXT = parse_xml_extensions(root, extensions)
+    subsetsEXT = parse_xml_extensions(root, extensions, version.api, version.profile)
 
     subsets  = subsetsGL
     subsets += subsetsEXT
