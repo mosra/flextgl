@@ -8,13 +8,13 @@ import flext
 def main():
     # Read command line arguments and profile settings
     options,profile = parse_args()    
-    version,extensions,funcslist = flext.parse_profile(profile)
+    version,extensions,funcslist,funcsblacklist = flext.parse_profile(profile)
 
     # Download spec file(s) if necessary
     flext.download_spec(options.download)
 
     # Parse spec
-    passthru, enums, functions, types, raw_enums = flext.parse_xml(version, extensions, funcslist)
+    passthru, enums, functions, types, raw_enums = flext.parse_xml(version, extensions, funcslist, funcsblacklist)
 
     # Generate source from templates
     flext.generate_source(options, version, enums, functions, passthru,

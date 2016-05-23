@@ -80,14 +80,17 @@ def parse_profile(filename):
     version_pattern = re.compile('\s*version\s+(\d)\.(\d)\s*(core|compatibility|es|)\s*$')
     extension_pattern = re.compile('\s*extension\s+(\w+)\s+(required|optional)\s*$')
     functions_pattern = re.compile('\s*(begin|end) functions$')
+    functionsblacklist_pattern = re.compile('\s*(begin|end) functions blacklist$')
     function_pattern = re.compile('\s*[A-Z][A-Za-z0-9]+$')
 
     version = None
     extensions = []
     extension_set = set()
     funcslist = []    
+    funcsblacklist = []
 
     function_mode = False
+    functionblacklist_mode = False
 
     with open(filename, 'r') as file:
         for line_no,line in enumerate(file, start=1):
@@ -110,6 +113,19 @@ def parse_profile(filename):
                     print ('Mismatched \'begin/end function\' (%s:%d): %s' % (filename, line_no, line))
                     exit(1)
 
+            # Begin/End Function blacklist mode
+            match = functionsblacklist_pattern.match(line)
+            if match:
+                if functionblacklist_mode == False and match.group(1) == 'begin':
+                    functionblacklist_mode = True
+                    continue
+                elif functionblacklist_mode == True and match.group(1) == 'end':
+                    functionblacklist_mode = False
+                    continue
+                else:
+                    print ('Mismatched \'begin/end functionblacklist\' (%s:%d): %s' % (filename, line_no, line))
+                    exit(1)
+
             # Parse functions if in function list mode
             if function_mode:
                 for name in line.split():
@@ -118,6 +134,15 @@ def parse_profile(filename):
                         exit(1)
                     funcslist.append(name)
                 continue                
+
+            # Parse functions if in function blacklist mode
+            if functionblacklist_mode:
+                for name in line.split():
+                    if not function_pattern.match(name):
+                        print ('\'%s\' does not appear to be a valid OpenGL function name (%s:%d): %s' % (name, filename, line_no, line))
+                        exit(1)
+                    funcsblacklist.append(name)
+                continue
 
             # Version command
             match = version_pattern.match(line)
@@ -152,7 +177,7 @@ def parse_profile(filename):
         funcslist.append("GetIntegerv")
         funcslist.append("GetStringi")        
     
-    return version, extensions, set(funcslist)
+    return version, extensions, set(funcslist), set(funcsblacklist)
 
 
 ################################################################################
@@ -365,7 +390,7 @@ def generate_enums(subsets, enums):
 
     return enumsDecl
 
-def generate_functions(subsets, commands, funcslist):
+def generate_functions(subsets, commands, funcslist, funcsblacklist):
     functions = []
     function_set = set()
     
@@ -375,6 +400,7 @@ def generate_functions(subsets, commands, funcslist):
         for name in subset.commands:
             if name in function_set: continue
             if funcslist and name[2:] not in funcslist: continue
+            if funcsblacklist and name[2:] in funcsblacklist: continue
             subset_functions.append(Function(commands[name].returntype, commands[name].name[2:], commands[name].params))
             function_set.add(name)
 
@@ -396,7 +422,7 @@ def resolve_type_dependencies(subsets, types, commands):
 
     return requiredTypes
 
-def parse_xml(version, extensions, funcslist):
+def parse_xml(version, extensions, funcslist, funcsblacklist):
     tree = etree.parse(gl_xml_file)
     root = tree.getroot()
 
@@ -414,7 +440,7 @@ def parse_xml(version, extensions, funcslist):
 
     passthru     = generate_passthru(requiredTypes, types)
     enums        = generate_enums(subsets, raw_enums)
-    functions    = generate_functions(subsets, commands, funcslist)
+    functions    = generate_functions(subsets, commands, funcslist, funcsblacklist)
 
     return passthru, enums, functions, types, raw_enums
 
