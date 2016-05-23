@@ -28,10 +28,11 @@ extension ARB_gpu_shader5 required
 # for checking if an extension is supported.
 
 
-# An optional whitelist of functions to load can be supplied
+# An optional whitelist/blacklist of functions to load can be supplied
 # This allows reducing the generated code size and loading times
 # 'begin functions' starts a space-separated list of functions to be loaded and
-# 'end functions' ends it. Comments still work.
+# 'end functions' ends it. If you say 'functions blacklist' instead of
+# 'functions', the listed functions will be blacklisted. Comments still work.
 # The 'gl' at the beginning of function names should be omitted
 
 begin functions
