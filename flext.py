@@ -79,8 +79,7 @@ def parse_profile(filename):
     comment_pattern = re.compile('\s*#.*$|\s+$')
     version_pattern = re.compile('\s*version\s+(\d)\.(\d)\s*(core|compatibility|es|)\s*$')
     extension_pattern = re.compile('\s*extension\s+(\w+)\s+(required|optional)\s*$')
-    functions_pattern = re.compile('\s*(begin|end) functions$')
-    functionsblacklist_pattern = re.compile('\s*(begin|end) functions blacklist$')
+    functions_pattern = re.compile('\s*(begin|end) functions\s+(blacklist)?$')
     function_pattern = re.compile('\s*[A-Z][A-Za-z0-9]+$')
 
     version = None
@@ -89,8 +88,8 @@ def parse_profile(filename):
     funcslist = []    
     funcsblacklist = []
 
-    function_mode = False
-    functionblacklist_mode = False
+    function_mode  = False # Are we in function mode?
+    blacklist_mode = False # While in function mode, are we blacklisting?
 
     with open(filename, 'r') as file:
         for line_no,line in enumerate(file, start=1):
@@ -104,26 +103,14 @@ def parse_profile(filename):
             match = functions_pattern.match(line)
             if match:
                 if function_mode == False and match.group(1) == 'begin':
-                    function_mode = True
+                    function_mode  = True
+                    blacklist_mode = (match.group(2) == 'blacklist')
                     continue
-                elif function_mode == True and match.group(1) == 'end':
+                elif function_mode == True and match.group(1) == 'end' and blacklist_mode == (match.group(2) == 'blacklist'):
                     function_mode = False
                     continue
                 else:
                     print ('Mismatched \'begin/end function\' (%s:%d): %s' % (filename, line_no, line))
-                    exit(1)
-
-            # Begin/End Function blacklist mode
-            match = functionsblacklist_pattern.match(line)
-            if match:
-                if functionblacklist_mode == False and match.group(1) == 'begin':
-                    functionblacklist_mode = True
-                    continue
-                elif functionblacklist_mode == True and match.group(1) == 'end':
-                    functionblacklist_mode = False
-                    continue
-                else:
-                    print ('Mismatched \'begin/end functionblacklist\' (%s:%d): %s' % (filename, line_no, line))
                     exit(1)
 
             # Parse functions if in function list mode
@@ -132,16 +119,10 @@ def parse_profile(filename):
                     if not function_pattern.match(name):
                         print ('\'%s\' does not appear to be a valid OpenGL function name (%s:%d): %s' % (name, filename, line_no, line))
                         exit(1)
-                    funcslist.append(name)
-                continue                
-
-            # Parse functions if in function blacklist mode
-            if functionblacklist_mode:
-                for name in line.split():
-                    if not function_pattern.match(name):
-                        print ('\'%s\' does not appear to be a valid OpenGL function name (%s:%d): %s' % (name, filename, line_no, line))
-                        exit(1)
-                    funcsblacklist.append(name)
+                    if blacklist_mode:
+                        funcsblacklist.append(name)
+                    else:
+                        funcslist.append(name)
                 continue
 
             # Version command
