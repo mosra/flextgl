@@ -191,11 +191,6 @@ class Type:
         self.definition = definition
         self.dependent  = dependent
         
-class Enum:
-    def __init__(self, name, value):
-        self.name  = name
-        self.value = value
-        
 class Command:
     def __init__(self, rettype, name, params, requiredTypes):
         self.name          = name
@@ -320,10 +315,6 @@ def parse_xml_features(root, int_version, api, profile):
     return subsets
 
 def parse_xml_extensions(root, extensions, api, profile):
-    removedEnums    = set()
-    removedTypes    = set()
-    removedCommands = set()
-
     subsets = []
 
     for name, _ in extensions:
