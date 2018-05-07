@@ -1,2 +1,4 @@
 spec
 __pycache__
+.coverage
+htmlcov

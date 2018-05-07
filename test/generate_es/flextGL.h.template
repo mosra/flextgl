@@ -1,0 +1,47 @@
+@require(passthru, functions, enums, options, version, extensions)
+/* A minimal template to test all corner cases. Not to be used directly.
+   Uses param_type_list_string() that's not used by the builtin templates. */
+
+/* @str(version) */
+
+/* Data types */
+
+@passthru
+
+/* Enums */
+
+@enums
+
+/* Function prototypes */
+@for cat,funcs in functions:
+@if funcs:
+
+/* GL_@cat */
+
+    @if cat in ['ES_VERSION_2_0']:
+        @for f in funcs:
+@f.returntype gl@f.name\
+(@f.param_type_list_string());
+        @end
+    @else:
+        @for f in funcs:
+@f.returntype\
+(*flextgl@f.name)(@f.param_type_list_string()) = nullptr;
+#define gl@f.name flextgl@f.name
+        @end
+    @end
+@end
+@end
+
+void flextGLInit() {
+    @for category,funcs in functions:
+    @if funcs and category not in ['ES_VERSION_2_0']:
+
+    /* GL_@category */
+    @for f in funcs:
+    flextgl@f.name = reinterpret_cast<@f.returntype\
+(*)(@f.param_type_list_string())>(load("gl@f.name"));
+    @end
+    @end
+    @end
+}

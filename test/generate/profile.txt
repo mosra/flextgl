@@ -1,0 +1,34 @@
+version 3.2 core
+
+extension EXT_texture_filter_anisotropic optional
+extension ARB_tessellation_shader optional
+
+# Extensions not present in the spec file are still put in the output
+extension ARB_does_not_exist optional
+
+# To verify that different signatures are picked for GL and ES
+extension KHR_context_flush_control optional
+
+# To verify GL compat profile stuff is ignored
+extension ARB_vertex_type_2_10_10_10_rev optional
+
+begin functions
+    GenBuffers
+    DeleteBuffers
+    BindBuffer
+    WaitSync
+    DrawArrays
+    DrawElements
+
+    # To verify stuff from ARB_tessellation_shader is picked up
+    PatchParameteri
+
+    # Only the first should get picked, as the second is from a compat profile
+    VertexAttribP4uiv
+    VertexP2ui
+end functions
+
+begin functions blacklist
+    # To verify blacklist has a priority over a whitelist
+    DrawArrays
+end functions blacklist

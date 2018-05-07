@@ -1,0 +1,25 @@
+version 2.0 es
+
+extension OES_vertex_array_object optional
+
+# Extensions not present in the spec file are still put in the output
+extension OES_does_not_exist optional
+
+# To verify that different signatures are picked for GL and ES
+extension KHR_context_flush_control optional
+
+begin functions
+    GenBuffers
+    DeleteBuffers
+    BindBuffer
+    DrawArrays
+    DrawElements
+
+    # To verify stuff from OES_vertex_array_object is picked up
+    GenVertexArraysOES
+end functions
+
+begin functions blacklist
+    # To verify blacklist has a priority over a whitelist
+    DrawArrays
+end functions blacklist
