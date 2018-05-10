@@ -42,3 +42,7 @@ class ParseErrors(unittest.TestCase):
     def test_unknown_command(self):
         with self.assertRaises(SystemExit):
             self.run_flextglgen('profile/unknown-command.txt')
+
+    def test_empty(self):
+        with self.assertRaises(SystemExit):
+            self.run_flextglgen('profile/empty.txt')

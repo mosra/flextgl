@@ -153,6 +153,10 @@ def parse_profile(filename):
             print ('Syntax Error (%s:%d): %s' % (filename, line_no, line))
             exit(1)
 
+    if not version:
+        print('Error ({}): Missing version statement'.format(filename))
+        exit(1)
+
     if funcslist:
         #Functions needed by loader code
         funcslist.append("GetIntegerv")
