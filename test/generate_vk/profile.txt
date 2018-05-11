@@ -4,6 +4,10 @@ begin functions
     CmdDraw
     CmdDrawIndexed
 
+    # To check that VkBufferViewCreateInfo has properly generated space before
+    # flags
+    CreateBufferView
+
     CreateBuffer
 end functions
 

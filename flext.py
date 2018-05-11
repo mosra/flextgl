@@ -218,6 +218,11 @@ def xml_extract_all_text(node, substitutes):
         if item.tag in substitutes:
             fragments += [substitutes[item.tag]]
         elif item.text:
+            # Sometimes <type> and <name> is not separated with a space in
+            # vk.xml, add it here
+            if fragments and fragments[-1] and fragments[-1][-1].isalnum():
+                if fragments[-1][-1].isalnum() and item.text and item.text[0].isalnum():
+                    fragments += [' ']
             fragments += [item.text]
         if item.tail: fragments.append(item.tail)
     return ''.join(fragments).strip()
