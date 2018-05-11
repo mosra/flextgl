@@ -183,6 +183,7 @@ class Type:
         self.api        = api
         self.name       = name
         self.definition = definition
+        self.is_dependent = False
         self.dependent  = dependent
         
 class Command:
@@ -246,15 +247,23 @@ def parse_xml_types(root, api):
     for type in reversed(types):
         # Skip the entry if the type is already defined with better
         # specialization for this API
-        if type.name in unique_type_names and not type.api and unique_type_names[type.name]: continue
+        if type.name in unique_type_names and not type.api and unique_type_names[type.name].api: continue
 
-        unique_type_names[type.name] = type.api
+        unique_type_names[type.name] = type
         unique_types.append(type)
 
-    # Reverse the list again to keep the original order
-    return [t for t in reversed(unique_types)]
+    # Mark all type dependencies as such. In the end only types that are
+    # (indirectly) referenced by a command and top-level types (that are not
+    # referenced by any command, such as indirect draw structures) will get
+    # written to the output.
+    for type in unique_types:
+        if type.dependent:
+            unique_type_names[type.dependent].is_dependent = True
 
-def parse_xml_commands(root):
+    # Reverse the list again to keep the original order
+    return [t for t in reversed(unique_types)], unique_type_names
+
+def parse_xml_commands(root, type_map):
     commands = {}
 
     for cmd in root.findall("./commands/command"):
@@ -271,6 +280,9 @@ def parse_xml_commands(root):
 
             if requiredType!=None:
                 requiredTypes.add(requiredType)
+
+        # Mark all types required by a command as dependent
+        for type in requiredTypes: type_map[type].is_dependent = True
 
         commands[name] = Command(rettype, name, params, requiredTypes)
 
@@ -359,7 +371,8 @@ def generate_enums(subsets, enums):
 def generate_functions(subsets, commands, funcslist, funcsblacklist):
     functions = []
     function_set = set()
-    
+    required_types = set()
+
     for subset in subsets:
         #remove 'gl' suffixes and strip away commands that are already in the list
         subset_functions = []
@@ -368,20 +381,30 @@ def generate_functions(subsets, commands, funcslist, funcsblacklist):
             if funcslist and name[2:] not in funcslist: continue
             if funcsblacklist and name[2:] in funcsblacklist: continue
             subset_functions.append(Function(commands[name].returntype, commands[name].name[2:], commands[name].params))
+
             function_set.add(name)
+            required_types |= commands[name].requiredTypes
 
         functions.append((subset.name, subset_functions))
 
-    return functions
+    return functions, required_types
 
-def resolve_type_dependencies(subsets, types, commands):
-    requiredTypes = set()
+def resolve_type_dependencies(subsets, requiredTypes, types):
+    requiredEnums = set()
 
+    types_from_subsets = set()
     for subset in subsets:
-        requiredTypes |= set(subset.types)
-        for cmd in subset.commands:
-            requiredTypes |= commands[cmd].requiredTypes
+        types_from_subsets |= set(subset.types)
 
+    # If given type is a top-level one required by one of the subsets (i.e.,
+    # not referenced (indirectly) by any command such as indirect draw
+    # structures), include it as well.
+    for type in types:
+        if type.name in types_from_subsets and not type.is_dependent:
+            requiredTypes.add(type.name)
+
+    # If given type is required, add also all its dependencies to required
+    # types.
     for type in types:
         if type.name in requiredTypes and type.dependent:
             requiredTypes.add(type.dependent)
@@ -392,9 +415,9 @@ def parse_xml(version, extensions, funcslist, funcsblacklist):
     tree = etree.parse(gl_spec_file)
     root = tree.getroot()
 
-    types    = parse_xml_types(root, version.api)
-    raw_enums    = parse_xml_enums(root, version.api)
-    commands = parse_xml_commands(root)
+    types, type_map = parse_xml_types(root, version.api)
+    raw_enums = parse_xml_enums(root, version.api)
+    commands = parse_xml_commands(root, type_map)
 
     subsetsGL  = parse_xml_features  (root, version.int_value(), version.api, version.profile)
     subsetsEXT = parse_xml_extensions(root, extensions, version.api, version.profile)
@@ -402,11 +425,11 @@ def parse_xml(version, extensions, funcslist, funcsblacklist):
     subsets  = subsetsGL
     subsets += subsetsEXT
 
-    requiredTypes = resolve_type_dependencies(subsets, types, commands)
+    enums = generate_enums(subsets, raw_enums)
 
-    passthru     = generate_passthru(requiredTypes, types)
-    enums        = generate_enums(subsets, raw_enums)
-    functions    = generate_functions(subsets, commands, funcslist, funcsblacklist)
+    functions, requiredTypes = generate_functions(subsets, commands, funcslist, funcsblacklist)
+    requiredTypes = resolve_type_dependencies(subsets, requiredTypes, types)
+    passthru = generate_passthru(requiredTypes, types)
 
     return passthru, enums, functions, types, raw_enums
 

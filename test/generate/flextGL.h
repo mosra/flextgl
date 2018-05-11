@@ -5,7 +5,6 @@
 
 /* Data types */
 
-#include <stddef.h>
 #ifndef GLEXT_64_TYPES_DEFINED
 /* This code block is duplicated in glxext.h, so must be protected */
 #define GLEXT_64_TYPES_DEFINED
@@ -47,22 +46,11 @@ typedef unsigned int GLenum;
 typedef unsigned char GLboolean;
 typedef unsigned int GLbitfield;
 typedef void GLvoid;
-typedef signed char GLbyte;
-typedef short GLshort;
 typedef int GLint;
 typedef unsigned char GLubyte;
-typedef unsigned short GLushort;
 typedef unsigned int GLuint;
 typedef int GLsizei;
-typedef float GLfloat;
-typedef float GLclampf;
-typedef double GLdouble;
-typedef double GLclampd;
-typedef char GLchar;
 typedef unsigned short GLhalf;
-typedef ptrdiff_t GLintptr;
-typedef ptrdiff_t GLsizeiptr;
-typedef int64_t GLint64;
 typedef uint64_t GLuint64;
 typedef struct __GLsync *GLsync;
 
