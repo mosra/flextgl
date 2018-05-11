@@ -25,10 +25,8 @@ default_template_root = os.path.join(script_dir, 'templates')
 # Name and location for spec file(s)
 ################################################################################
 
-specFileList = ['gl.xml']
-specURL = 'http://www.opengl.org/registry/api/'
-gl_xml_file = os.path.join(spec_dir, 'gl.xml')
-
+gl_spec_url = 'http://www.opengl.org/registry/api/gl.xml'
+gl_spec_file = os.path.join(spec_dir, os.path.basename(gl_spec_url))
 
 ################################################################################
 # Spec file download
@@ -41,12 +39,9 @@ def download_spec(always_download = False):
     if not os.path.exists(spec_dir):
         os.makedirs(spec_dir)
 
-    for fileName in specFileList:
-        filePath = os.path.join(spec_dir, fileName)
-        if (always_download or not os.path.exists(filePath) or file_age(filePath) > 3 * 24):
-            fileURL  = '%s%s' % (specURL, fileName)
-            print ('Downloading %s' % fileURL)
-            urllib.request.urlretrieve(fileURL, filePath)
+    if always_download or not os.path.exists(gl_spec_file) or file_age(gl_spec_file) > 3*24:
+        print ('Downloading %s' % gl_spec_url)
+        urllib.request.urlretrieve(gl_spec_url, gl_spec_file)
 
 
 ################################################################################
@@ -394,7 +389,7 @@ def resolve_type_dependencies(subsets, types, commands):
     return requiredTypes
 
 def parse_xml(version, extensions, funcslist, funcsblacklist):
-    tree = etree.parse(gl_xml_file)
+    tree = etree.parse(gl_spec_file)
     root = tree.getroot()
 
     types    = parse_xml_types(root, version.api)
