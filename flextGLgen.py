@@ -5,9 +5,7 @@ from optparse import OptionParser
 import flext
 
 
-def main():
-    # Read command line arguments and profile settings
-    options,profile = parse_args()    
+def main(options, profile):
     version,extensions,funcslist,funcsblacklist = flext.parse_profile(profile)
 
     # Download spec file(s) if necessary
@@ -48,4 +46,5 @@ def parse_args():
     
 
 if __name__ == "__main__":
-    main()
+    # Read command line arguments and profile settings
+    main(*parse_args())
