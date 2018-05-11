@@ -10,10 +10,16 @@ def main(options, profile):
     version,extensions,funcslist,funcsblacklist = flext.parse_profile(profile)
 
     # Download spec file(s) if necessary
-    flext.download_spec(options.download)
+    if version.api == 'vulkan':
+        spec_url = flext.vk_spec_url
+    else:
+        spec_url = flext.gl_spec_url
+    spec_file = os.path.basename(spec_url)
+
+    flext.download_spec(spec_url, options.download)
 
     # Parse spec
-    passthru, enums, functions, types, raw_enums = flext.parse_xml(version, extensions, funcslist, funcsblacklist)
+    passthru, enums, functions, types, raw_enums = flext.parse_xml(spec_file, version, extensions, funcslist, funcsblacklist)
 
     # Generate source from templates
     flext.generate_source(options, version, enums, functions, passthru,

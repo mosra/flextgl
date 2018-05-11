@@ -56,6 +56,14 @@ class Es(BaseTestCase):
         self.run_flextglgen()
         self.assertEqual(*self.actual_expected_contents('flextGL.h'))
 
+class Vk(BaseTestCase):
+    def __init__(self, *args, **kwargs):
+        super().__init__(__file__, 'vk', *args, **kwargs)
+
+    def test(self):
+        self.run_flextglgen()
+        self.assertEqual(*self.actual_expected_contents('flextVk.h'))
+
 class NotADirectory(BaseTestCase):
     def __init__(self, *args, **kwargs):
         super().__init__(__file__, '', *args, **kwargs)

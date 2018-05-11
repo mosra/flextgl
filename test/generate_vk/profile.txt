@@ -1,0 +1,13 @@
+version 1.0 vulkan
+
+begin functions
+    CmdDraw
+    CmdDrawIndexed
+
+    CreateBuffer
+end functions
+
+begin functions blacklist
+    # To verify blacklist has a higher priority
+    CmdDraw
+end functions blacklist

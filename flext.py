@@ -26,7 +26,7 @@ default_template_root = os.path.join(script_dir, 'templates')
 ################################################################################
 
 gl_spec_url = 'http://www.opengl.org/registry/api/gl.xml'
-gl_spec_file = os.path.join(spec_dir, os.path.basename(gl_spec_url))
+vk_spec_url = 'https://raw.githubusercontent.com/KhronosGroup/Vulkan-LoaderAndValidationLayers/sdk-1.0.68.0/scripts/vk.xml'
 
 ################################################################################
 # Spec file download
@@ -35,14 +35,15 @@ gl_spec_file = os.path.join(spec_dir, os.path.basename(gl_spec_url))
 def file_age(filename):
     return (time.time() - os.path.getmtime(filename)) / 3600.0
 
-def download_spec(always_download = False):
+def download_spec(spec_url, always_download = False):
     if not os.path.exists(spec_dir):
         os.makedirs(spec_dir)
 
-    if always_download or not os.path.exists(gl_spec_file) or file_age(gl_spec_file) > 3*24:
-        print ('Downloading %s' % gl_spec_url)
-        urllib.request.urlretrieve(gl_spec_url, gl_spec_file)
+    spec_file = os.path.join(spec_dir, os.path.basename(spec_url))
 
+    if always_download or not os.path.exists(spec_file) or file_age(spec_file) > 3*24:
+        print ('Downloading %s' % spec_url)
+        urllib.request.urlretrieve(spec_url, spec_file)
 
 ################################################################################
 # Profile file parsing
@@ -50,24 +51,38 @@ def download_spec(always_download = False):
 
 class Version():
     def __init__(self, major, minor, profile_or_api):
-        # 'gl', 'gles1' or 'gles2'
-        self.api = 'gl' + profile_or_api if profile_or_api in ['es1', 'es2'] else 'gl'
+        # 'vulkan', 'gl', 'gles1' or 'gles2'
+        if profile_or_api == 'vulkan':
+            self.api = profile_or_api
+        elif profile_or_api in ['es1', 'es2']:
+            self.api = 'gl' + profile_or_api
+        else:
+            self.api = 'gl'
+        # Macro name prefix
+        if profile_or_api == 'vulkan':
+            self.prefix = 'VK_'
+        else:
+            self.prefix = 'GL_'
         self.major = int(major)
         self.minor = int(minor)
         # 'core' or 'compatibility'
         self.profile = profile_or_api if self.api == 'gl' else ''
 
     def __str__(self):
-        return 'OpenGL %d.%d %s' % (self.major, self.minor, self.profile) \
-            if self.api == 'gl' else 'OpenGL ES %d.%d' % (self.major, self.minor)
+        if self.api == 'vulkan':
+            return 'Vulkan %d.%d' % (self.major, self.minor)
+        elif self.api == 'gl':
+            return 'OpenGL %d.%d %s' % (self.major, self.minor, self.profile)
+        else:
+            return 'OpenGL ES %d.%d' % (self.major, self.minor)
 
     def int_value(self):
         return 10 * self.major + self.minor;
 
-    
+
 def parse_profile(filename):
     comment_pattern = re.compile('\s*#.*$|\s+$')
-    version_pattern = re.compile('\s*version\s+(\d)\.(\d)\s*(core|compatibility|es|)\s*$')
+    version_pattern = re.compile('\s*version\s+(\d)\.(\d)\s*(core|compatibility|es|vulkan|)\s*$')
     extension_pattern = re.compile('\s*extension\s+(\w+)\s+(required|optional)\s*$')
     functions_pattern = re.compile('\s*(begin|end) functions\s+(blacklist)?$')
     function_pattern = re.compile('\s*[A-Z][A-Za-z0-9]+$')
@@ -149,9 +164,11 @@ def parse_profile(filename):
 
     if funcslist:
         #Functions needed by loader code
-        funcslist.append("GetIntegerv")
-        funcslist.append("GetStringi")        
-    
+        if version.api == 'vulkan':
+            funcslist += ['GetInstanceProcAddr', 'GetDeviceProcAddr']
+        else:
+            funcslist += ['GetIntegerv', 'GetStringi']
+
     return version, extensions, set(funcslist), set(funcsblacklist)
 
 
@@ -177,36 +194,40 @@ class APISubset:
         self.types    = types
         self.enums    = enums
         self.commands = commands
-       
+
 class Type:
-    def __init__(self, api, name, definition, dependent):
+    def __init__(self, api, name, definition, required_types, required_enums):
         self.api        = api
         self.name       = name
         self.definition = definition
         self.is_dependent = False
-        self.dependent  = dependent
-        
+        self.required_types = required_types
+        self.required_enums = required_enums
+
 class Command:
     def __init__(self, rettype, name, params, requiredTypes):
         self.name          = name
         self.params        = params
         self.returntype    = rettype
         self.requiredTypes = requiredTypes
-        
-def safe_text(text):
-    return '' if (text is None) else text
 
 def xml_extract_all_text(node, substitutes):
-    fragments = [safe_text(node.text)]
+    fragments = []
+    if node.text: fragments += [node.text]
     for item in list(node):
-        fragments.append(substitutes[item.tag] if item.tag in substitutes else safe_text(item.text))
-        fragments.append(safe_text(item.tail))
-    return ''.join(fragments)
+        if item.tag in substitutes:
+            fragments += [substitutes[item.tag]]
+        elif item.text:
+            fragments += [item.text]
+        if item.tail: fragments.append(item.tail)
+    return ''.join(fragments).strip()
 
 def xml_parse_type_name_pair(node):
     name = node.find('name').text.strip()
-    type = xml_extract_all_text(node, {'name':''}).strip()
+    type = xml_extract_all_text(node, {'name':''})
+    # gl.xml has <ptype> while vk.xml has <type>
     ptype = node.find('ptype')
+    if ptype == None: ptype = node.find('type')
     return (name, type, ptype.text.strip() if ptype != None else None)
 
 def extract_names(feature, selector):
@@ -223,7 +244,12 @@ def parse_xml_enums(root, api):
     for enum in root.findall("./enums/enum"):
         if ('api' in enum.attrib and enum.attrib['api'] != api): continue
         name  = enum.attrib['name']
-        value = "%s%s" % (enum.attrib['value'], enum.attrib['type']) if 'type' in enum.attrib else enum.attrib['value']
+        if 'type' in enum.attrib:
+            value = "%s%s" % (enum.attrib['value'], enum.attrib['type'])
+        elif 'bitpos' in enum.attrib:
+            value = "1 << {}".format(enum.attrib['bitpos'])
+        else:
+            value = enum.attrib['value']
         enums[name] = value
 
     return enums
@@ -235,9 +261,55 @@ def parse_xml_types(root, api):
         if ('api' in type.attrib and type.attrib['api'] != api): continue
 
         name = type.attrib['name'] if 'name'in type.attrib else type.find('./name').text
-        definition = xml_extract_all_text(type, {'apientry' : 'APIENTRY'})
 
-        types.append(Type(type.attrib['api'] if 'api' in type.attrib else None, name, definition, type.attrib['requires'] if 'requires' in type.attrib else None))
+        # Type dependencies
+        dependencies = set()
+        enum_dependencies = set()
+        if 'requires' in type.attrib:
+            dependencies |= set([type.attrib['requires']])
+
+        # Struct / union definition in Vulkan
+        if 'category' in type.attrib and type.attrib['category'] in ['struct', 'union']:
+            members = []
+            for m in type.findall('member'):
+                members += ['    {};'.format(xml_extract_all_text(m, {'comment': ''}))]
+
+                # Add all member <type>s and array sizes (<enum> to
+                # dependencies
+                dependencies |= set([t.text for t in m.findall('type')])
+                enum_dependencies |= set([t.text for t in m.findall('enum')])
+
+            definition = '\ntypedef {} {{\n{}\n}} {};'.format(type.attrib['category'], '\n'.join(members), type.attrib['name'])
+
+        # Enum definition in Vulkan
+        elif 'category' in type.attrib and type.attrib['category'] == 'enum':
+            values = []
+            enumdef = root.find("./enums[@name='{}']".format(type.attrib['name']))
+            if enumdef: # Some Vulkan enums are empty (bitsets)
+                for enum in enumdef.findall('enum'):
+                    if 'bitpos' in enum.attrib:
+                        values += ['    {} = 1 << {}'.format(enum.attrib['name'], enum.attrib['bitpos'])]
+                    else:
+                        values += ['    {} = {}'.format(enum.attrib['name'], enum.attrib['value'])]
+                definition = '\ntypedef enum {{\n{}\n}} {};'.format(',\n'.join(values), type.attrib['name'])
+            else: # ISO C++ forbids empty unnamed enum, work around that
+                definition = '\ntypedef int {};'.format(type.attrib['name'])
+
+        # Classic type definition
+        else:
+            definition = xml_extract_all_text(type, {'apientry' : 'APIENTRY'})
+
+            # Add all member types to dependencies (can be more than one in
+            # case of function pointer definitions)
+            dependencies |= set([t.text for t in type.findall('type')])
+
+        # If the type defines something but the definition is empty, our
+        # parsing is broken. OTOH, there can be proxy types such as
+        # <type requires="X11/Xlib.h" name="Display"/> that don't define
+        # anything.
+        assert not type or definition.strip()
+
+        types.append(Type(type.attrib['api'] if 'api' in type.attrib else None, name, definition, dependencies, enum_dependencies))
 
     # Go through type list and keep only unique names. Because the
     # specializations are at the end, going in reverse will select only the
@@ -257,8 +329,18 @@ def parse_xml_types(root, api):
     # referenced by any command, such as indirect draw structures) will get
     # written to the output.
     for type in unique_types:
-        if type.dependent:
-            unique_type_names[type.dependent].is_dependent = True
+        for dependency in type.required_types:
+            unique_type_names[dependency].is_dependent = True
+
+    # Bubble up recursive type dependencies
+    def gather_type_dependencies(type):
+        dependencies = set()
+        for d in type.required_types:
+            dependencies.add(d)
+            dependencies |= gather_type_dependencies(unique_type_names[d])
+        return dependencies
+    for type in unique_types:
+        type.required_types = gather_type_dependencies(type)
 
     # Reverse the list again to keep the original order
     return [t for t in reversed(unique_types)], unique_type_names
@@ -271,7 +353,6 @@ def parse_xml_commands(root, type_map):
         name, rettype, requiredType = xml_parse_type_name_pair(cmd.find('./proto'))
         if requiredType!=None:
             requiredTypes.add(requiredType)
-
 
         params = []
         for item in cmd.findall("./param"):
@@ -288,11 +369,11 @@ def parse_xml_commands(root, type_map):
 
     return commands
 
-def parse_xml_features(root, int_version, api, profile):
+def parse_xml_features(root, version):
     subsets = []
 
-    for feature in root.findall("./feature[@api='%s'][@name][@number]" % api):
-        if (parse_int_version(feature.attrib['number'])>int_version):
+    for feature in root.findall("./feature[@api='%s'][@name][@number]" % version.api):
+        if (parse_int_version(feature.attrib['number'])>version.int_value()):
             continue
 
         featureName = feature.attrib['name']
@@ -302,7 +383,7 @@ def parse_xml_features(root, int_version, api, profile):
         commandList = []
 
         for actionSet in list(feature):
-            if api == 'gl' and 'profile' in actionSet.attrib and actionSet.attrib['profile'] != profile:
+            if version.api == 'gl' and 'profile' in actionSet.attrib and actionSet.attrib['profile'] != version.profile:
                 continue
 
             if actionSet.tag == 'require':
@@ -320,11 +401,11 @@ def parse_xml_features(root, int_version, api, profile):
 
     return subsets
 
-def parse_xml_extensions(root, extensions, api, profile):
+def parse_xml_extensions(root, extensions, version):
     subsets = []
 
     for name, _ in extensions:
-        extension = root.find("./extensions/extension[@name='GL_%s']" % name)
+        extension = root.find("./extensions/extension[@name='{}{}']".format(version.prefix, name))
         if (extension==None):
             print ('%s is not an extension' % name)
             continue
@@ -337,8 +418,8 @@ def parse_xml_extensions(root, extensions, api, profile):
             # Given set of names is restricted to some API or profile subset
             # (e.g. KHR_debug has different set of names for 'gl' and 'gles2')
             if 'api' in require.attrib:
-                if require.attrib['api'] != api: continue
-                if 'profile' in require.attrib and require.attrib['profile'] != profile: continue
+                if require.attrib['api'] != version.api: continue
+                if 'profile' in require.attrib and require.attrib['profile'] != version.profile: continue
 
             subsetTypes += extract_names(require, 'type')
             subsetEnums += extract_names(require, 'enum')
@@ -351,18 +432,29 @@ def parse_xml_extensions(root, extensions, api, profile):
 def generate_passthru(dependencies, types):
     passthru = ''
     for type in types:
-        if (type.name in dependencies):
+        # We're handling vk_platform ourselves
+        if type.name in dependencies and type.definition and type.name not in ['vk_platform']:
             if passthru: passthru += '\n'
             passthru += type.definition
 
     return passthru
 
-def generate_enums(subsets, enums):
+def generate_enums(subsets, requiredEnums, enums, version):
     enumsDecl = ''
+
+    # Vulkan API constants that are required by type definitions but not part
+    # of any subset. Iterating over the enums dict instead of iterating over
+    # the requiredEnums set in order to retain the XML order and have
+    # deterministic output (iteration of a list preserves insertion order).
+    for name, definition in enums.items():
+        if name in requiredEnums:
+            if enumsDecl: enumsDecl += '\n'
+            enumsDecl += '#define {} {}'.format(name, definition)
+
     for subset in subsets:
         if subset.enums != []:
             if enumsDecl: enumsDecl += '\n\n'
-            enumsDecl += '/* GL_%s */\n' % subset.name
+            enumsDecl += '/* {}{} */\n'.format(version.prefix, subset.name)
             for enumName in subset.enums:
                 enumsDecl += '\n#define %s %s' % (enumName, enums[enumName])
 
@@ -374,7 +466,8 @@ def generate_functions(subsets, commands, funcslist, funcsblacklist):
     required_types = set()
 
     for subset in subsets:
-        #remove 'gl' suffixes and strip away commands that are already in the list
+        # remove gl/vk prefixes and strip away commands that are already in the
+        # list
         subset_functions = []
         for name in subset.commands:
             if name in function_set: continue
@@ -406,30 +499,27 @@ def resolve_type_dependencies(subsets, requiredTypes, types):
     # If given type is required, add also all its dependencies to required
     # types.
     for type in types:
-        if type.name in requiredTypes and type.dependent:
-            requiredTypes.add(type.dependent)
+        if type.name in requiredTypes:
+            requiredTypes |= type.required_types
+            requiredEnums |= type.required_enums
 
-    return requiredTypes
+    return requiredTypes, requiredEnums
 
-def parse_xml(version, extensions, funcslist, funcsblacklist):
-    tree = etree.parse(gl_spec_file)
+def parse_xml(file, version, extensions, funcslist, funcsblacklist):
+    tree = etree.parse(os.path.join(spec_dir, file))
     root = tree.getroot()
 
     types, type_map = parse_xml_types(root, version.api)
     raw_enums = parse_xml_enums(root, version.api)
     commands = parse_xml_commands(root, type_map)
 
-    subsetsGL  = parse_xml_features  (root, version.int_value(), version.api, version.profile)
-    subsetsEXT = parse_xml_extensions(root, extensions, version.api, version.profile)
-
-    subsets  = subsetsGL
-    subsets += subsetsEXT
-
-    enums = generate_enums(subsets, raw_enums)
+    subsets  = parse_xml_features  (root, version)
+    subsets += parse_xml_extensions(root, extensions, version)
 
     functions, requiredTypes = generate_functions(subsets, commands, funcslist, funcsblacklist)
-    requiredTypes = resolve_type_dependencies(subsets, requiredTypes, types)
+    requiredTypes, requiredEnums = resolve_type_dependencies(subsets, requiredTypes, types)
     passthru = generate_passthru(requiredTypes, types)
+    enums = generate_enums(subsets, requiredEnums, raw_enums, version)
 
     return passthru, enums, functions, types, raw_enums
 

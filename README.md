@@ -74,6 +74,16 @@ variable. For OpenGL ES a typical profile might look like:
     extension OES_standard_derivatives optional
     extension OES_vertex_array_object optional
 
+A Vulkan profile, whitelisting only some particular functions, can look like:
+
+    version 1.1 vulkan
+
+    begin functions
+        CreateInstance
+        CreateBuffer
+        CmdDraw
+    end functions
+
 The profile file is then passed to the script like this:
 
     $ python flextGLgen.py -D generated profile.txt
