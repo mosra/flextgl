@@ -17,13 +17,8 @@ from wheezy.template.loader   import FileLoader
 ################################################################################
 
 script_dir = os.path.dirname(__file__)
-
-if script_dir == '':
-    script_dir = '.'
-
-script_dir += '/'
-spec_dir = script_dir + 'spec/'
-default_template_root = script_dir + 'templates/'
+spec_dir = os.path.join(script_dir, 'spec')
+default_template_root = os.path.join(script_dir, 'templates')
 
 
 ################################################################################
@@ -32,7 +27,7 @@ default_template_root = script_dir + 'templates/'
 
 specFileList = ['gl.xml']
 specURL = 'http://www.opengl.org/registry/api/'
-gl_xml_file = '%s/gl.xml' % spec_dir
+gl_xml_file = os.path.join(spec_dir, 'gl.xml')
 
 
 ################################################################################
@@ -47,7 +42,7 @@ def download_spec(always_download = False):
         os.makedirs(spec_dir)
 
     for fileName in specFileList:
-        filePath = '%s%s' % (spec_dir, fileName)
+        filePath = os.path.join(spec_dir, fileName)
         if (always_download or not os.path.exists(filePath) or file_age(filePath) > 3 * 24):
             fileURL  = '%s%s' % (specURL, fileName)
             print ('Downloading %s' % fileURL)

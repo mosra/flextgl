@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import os.path
 from optparse import OptionParser
 
 import flext
@@ -40,7 +41,7 @@ def parse_args(): # pragma: no cover
         exit(1)
 
     if options.template_dir == None:
-        options.template_dir = flext.default_template_root + options.template
+        options.template_dir = os.path.join(flext.default_template_root, options.template)
 
     return options, args[0]
     
