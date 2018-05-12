@@ -260,7 +260,7 @@ def parse_xml_enums(root, api):
 
     return enums
 
-def parse_xml_types(root, api):
+def parse_xml_types(root, enum_extensions, api):
     types = []
 
     for type in root.findall("./types/type"):
@@ -290,16 +290,22 @@ def parse_xml_types(root, api):
         # Enum definition in Vulkan
         elif 'category' in type.attrib and type.attrib['category'] == 'enum':
             values = []
-            enumdef = root.find("./enums[@name='{}']".format(type.attrib['name']))
+            name = type.attrib['name']
+            enumdef = root.find("./enums[@name='{}']".format(name))
             if enumdef: # Some Vulkan enums are empty (bitsets)
                 for enum in enumdef.findall('enum'):
                     if 'bitpos' in enum.attrib:
                         values += ['    {} = 1 << {}'.format(enum.attrib['name'], enum.attrib['bitpos'])]
                     else:
                         values += ['    {} = {}'.format(enum.attrib['name'], enum.attrib['value'])]
-                definition = '\ntypedef enum {{\n{}\n}} {};'.format(',\n'.join(values), type.attrib['name'])
+                if name in enum_extensions:
+                    for extension, value in enum_extensions[name]:
+                        values += ['    {} = {}'.format(extension, value)]
+
+                definition = '\ntypedef enum {{\n{}\n}} {};'.format(',\n'.join(values), name)
+
             else: # ISO C++ forbids empty unnamed enum, work around that
-                definition = '\ntypedef int {};'.format(type.attrib['name'])
+                definition = '\ntypedef int {};'.format(name)
 
         # Classic type definition
         else:
@@ -394,13 +400,14 @@ def parse_xml_features(root, version):
 
             if actionSet.tag == 'require':
                 typeList.extend(extract_names(actionSet, './type'))
-                enumList.extend(extract_names(actionSet, './enum'))
                 commandList.extend(extract_names(actionSet, './command'))
+
+                enumList += [(element.attrib['name'], None) for element in actionSet.findall('./enum[@name]')]
 
             if actionSet.tag == 'remove':
                 for subset in subsets:
                     subset.types    = [entry for entry in subset.types    if entry not in set(extract_names(actionSet, './type'))]
-                    subset.enums    = [entry for entry in subset.enums    if entry not in set(extract_names(actionSet, './enum'))]
+                    subset.enums    = [(entry, entryValue) for entry, entryValue in subset.enums    if entry not in set(extract_names(actionSet, './enum'))]
                     subset.commands = [entry for entry in subset.commands if entry not in set(extract_names(actionSet, './command'))]
 
         subsets.append(APISubset(featureName[3:], typeList, enumList, commandList))
@@ -408,6 +415,7 @@ def parse_xml_features(root, version):
     return subsets
 
 def parse_xml_extensions(root, extensions, version):
+    enum_extensions = {}
     subsets = []
 
     for name, _ in extensions:
@@ -427,13 +435,50 @@ def parse_xml_extensions(root, extensions, version):
                 if require.attrib['api'] != version.api: continue
                 if 'profile' in require.attrib and require.attrib['profile'] != version.profile: continue
 
+            # Vulkan enum types can be extended
+            for enum in require.findall('enum'):
+                enum_name = enum.attrib['name']
+
+                if 'extends' in enum.attrib:
+                    extends = enum.attrib['extends']
+
+                    # VkSamplerAddressMode from VK_KHR_sampler_mirror_clamp_to_edge
+                    # has an explicit value. The sanest way, yet they say "this
+                    # is a special case, and should not be repeated".
+                    if 'value' in enum.attrib:
+                        value = enum.attrib['value']
+
+                    # Bit position
+                    elif 'bitpos' in enum.attrib:
+                        value = '1 << {}'.format(enum.attrib['bitpos'])
+
+                    # Calculate enum value from an overengineered set of
+                    # inputs. See the spec for details:
+                    # https://www.khronos.org/registry/vulkan/specs/1.1/styleguide.html#_assigning_extension_token_values
+                    else:
+                        base_value = 1000000000
+                        range_size = 1000
+                        value = base_value + (int(extension.attrib['number']) - 1)*range_size + int(enum.attrib['offset'])
+                        if enum.attrib.get('dir') == '-': value *= -1
+                        value = str(value)
+
+                    if extends not in enum_extensions: enum_extensions[extends] = []
+                    enum_extensions[extends] += [(enum_name, value)]
+
+                else:
+                    # Vulkan enums can provide the value directly next to
+                    # referencing some external enum value
+                    if 'value' in enum.attrib:
+                        subsetEnums += [(enum_name, enum.attrib['value'])]
+                    else:
+                        subsetEnums += [(enum_name, None)]
+
             subsetTypes += extract_names(require, 'type')
-            subsetEnums += extract_names(require, 'enum')
             subsetCommands += extract_names(require, 'command')
 
         subsets.append(APISubset(name, subsetTypes, subsetEnums, subsetCommands))
 
-    return subsets
+    return subsets, enum_extensions
 
 def generate_passthru(dependencies, types):
     written_types = set()
@@ -486,8 +531,13 @@ def generate_enums(subsets, requiredEnums, enums, version):
         if subset.enums != []:
             if enumsDecl: enumsDecl += '\n\n'
             enumsDecl += '/* {}{} */\n'.format(version.prefix, subset.name)
-            for enumName in subset.enums:
-                enumsDecl += '\n#define %s %s' % (enumName, enums[enumName])
+            for enumName, enumValue in subset.enums:
+                # Vulkan enums can provide the value directly next to
+                # referencing some external enum value
+                if enumValue:
+                    enumsDecl += '\n#define {} {}'.format(enumName, enumValue)
+                else:
+                    enumsDecl += '\n#define {} {}'.format(enumName, enums[enumName])
 
     return enumsDecl
 
@@ -540,12 +590,13 @@ def parse_xml(file, version, extensions, funcslist, funcsblacklist):
     tree = etree.parse(os.path.join(spec_dir, file))
     root = tree.getroot()
 
-    types, type_map = parse_xml_types(root, version.api)
+    subsets  = parse_xml_features(root, version)
+    subset_extensions, enum_extensions = parse_xml_extensions(root, extensions, version)
+    subsets += subset_extensions
+
+    types, type_map = parse_xml_types(root, enum_extensions, version.api)
     raw_enums = parse_xml_enums(root, version.api)
     commands = parse_xml_commands(root, type_map)
-
-    subsets  = parse_xml_features  (root, version)
-    subsets += parse_xml_extensions(root, extensions, version)
 
     functions, requiredTypes = generate_functions(subsets, commands, funcslist, funcsblacklist)
     requiredTypes, requiredEnums = resolve_type_dependencies(subsets, requiredTypes, types)

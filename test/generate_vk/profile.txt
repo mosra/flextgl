@@ -1,5 +1,14 @@
 version 1.0 vulkan
 
+# To check general extension parsing and enum extension with offset and dir
+extension KHR_swapchain optional
+
+# To check that enum extension with value are handled correctly
+extension KHR_sampler_mirror_clamp_to_edge optional
+
+# To check that enum extensions with bitpos are handled correctly
+extension IMG_filter_cubic optional
+
 begin functions
     CmdDraw
     CmdDrawIndexed
@@ -8,11 +17,17 @@ begin functions
     # definitions are put before VkPhysicalDeviceProperties
     GetPhysicalDeviceProperties
 
+    # To verify VkFormatFeatureFlagBits extensions are parsed correctly
+    GetPhysicalDeviceFormatProperties
+
     # To check that VkBufferViewCreateInfo has properly generated space before
     # flags
     CreateBufferView
 
     CreateBuffer
+
+    # To verify VkSamplerCreateInfo extensions are parsed correctly
+    CreateSampler
 end functions
 
 begin functions blacklist

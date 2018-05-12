@@ -23,6 +23,21 @@
 #define VK_QUEUE_FAMILY_IGNORED (~0U)
 #define VK_SUBPASS_EXTERNAL (~0U)
 
+/* VK_KHR_swapchain */
+
+#define VK_KHR_SWAPCHAIN_SPEC_VERSION 68
+#define VK_KHR_SWAPCHAIN_EXTENSION_NAME "VK_KHR_swapchain"
+
+/* VK_KHR_sampler_mirror_clamp_to_edge */
+
+#define VK_KHR_SAMPLER_MIRROR_CLAMP_TO_EDGE_SPEC_VERSION 1
+#define VK_KHR_SAMPLER_MIRROR_CLAMP_TO_EDGE_EXTENSION_NAME "VK_KHR_sampler_mirror_clamp_to_edge"
+
+/* VK_IMG_filter_cubic */
+
+#define VK_IMG_FILTER_CUBIC_SPEC_VERSION 1
+#define VK_IMG_FILTER_CUBIC_EXTENSION_NAME "VK_IMG_filter_cubic"
+
 /* Data types */
 
 typedef std::size_t size_t;
@@ -50,9 +65,11 @@ typedef std::size_t size_t;
 typedef uint32_t VkBool32;
 typedef uint32_t VkFlags;
 typedef uint64_t VkDeviceSize;
+typedef VkFlags VkSamplerCreateFlags;
 typedef VkFlags VkBufferViewCreateFlags;
 typedef VkFlags VkBufferUsageFlags;
 typedef VkFlags VkBufferCreateFlags;
+typedef VkFlags VkFormatFeatureFlags;
 typedef VkFlags VkSampleCountFlags;
 VK_DEFINE_HANDLE(VkInstance)
 VK_DEFINE_HANDLE(VkPhysicalDevice)
@@ -60,6 +77,16 @@ VK_DEFINE_HANDLE(VkDevice)
 VK_DEFINE_HANDLE(VkCommandBuffer)
 VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkBuffer)
 VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkBufferView)
+VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkSampler)
+
+typedef enum {
+    VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK = 0,
+    VK_BORDER_COLOR_INT_TRANSPARENT_BLACK = 1,
+    VK_BORDER_COLOR_FLOAT_OPAQUE_BLACK = 2,
+    VK_BORDER_COLOR_INT_OPAQUE_BLACK = 3,
+    VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE = 4,
+    VK_BORDER_COLOR_INT_OPAQUE_WHITE = 5
+} VkBorderColor;
 
 typedef enum {
     VK_PIPELINE_CACHE_HEADER_VERSION_ONE = 1
@@ -82,6 +109,17 @@ typedef enum {
     VK_BUFFER_USAGE_VERTEX_BUFFER_BIT = 1 << 7,
     VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT = 1 << 8
 } VkBufferUsageFlagBits;
+
+typedef enum {
+    VK_COMPARE_OP_NEVER = 0,
+    VK_COMPARE_OP_LESS = 1,
+    VK_COMPARE_OP_EQUAL = 2,
+    VK_COMPARE_OP_LESS_OR_EQUAL = 3,
+    VK_COMPARE_OP_GREATER = 4,
+    VK_COMPARE_OP_NOT_EQUAL = 5,
+    VK_COMPARE_OP_GREATER_OR_EQUAL = 6,
+    VK_COMPARE_OP_ALWAYS = 7
+} VkCompareOp;
 
 typedef enum {
     VK_FORMAT_UNDEFINED = 0,
@@ -272,6 +310,23 @@ typedef enum {
 } VkFormat;
 
 typedef enum {
+    VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT = 1 << 0,
+    VK_FORMAT_FEATURE_STORAGE_IMAGE_BIT = 1 << 1,
+    VK_FORMAT_FEATURE_STORAGE_IMAGE_ATOMIC_BIT = 1 << 2,
+    VK_FORMAT_FEATURE_UNIFORM_TEXEL_BUFFER_BIT = 1 << 3,
+    VK_FORMAT_FEATURE_STORAGE_TEXEL_BUFFER_BIT = 1 << 4,
+    VK_FORMAT_FEATURE_STORAGE_TEXEL_BUFFER_ATOMIC_BIT = 1 << 5,
+    VK_FORMAT_FEATURE_VERTEX_BUFFER_BIT = 1 << 6,
+    VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT = 1 << 7,
+    VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BLEND_BIT = 1 << 8,
+    VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT = 1 << 9,
+    VK_FORMAT_FEATURE_BLIT_SRC_BIT = 1 << 10,
+    VK_FORMAT_FEATURE_BLIT_DST_BIT = 1 << 11,
+    VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT = 1 << 12,
+    VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_CUBIC_BIT_IMG = 1 << 13
+} VkFormatFeatureFlagBits;
+
+typedef enum {
     VK_SHARING_MODE_EXCLUSIVE = 0,
     VK_SHARING_MODE_CONCURRENT = 1
 } VkSharingMode;
@@ -302,7 +357,9 @@ typedef enum {
     VK_ERROR_INCOMPATIBLE_DRIVER = -9,
     VK_ERROR_TOO_MANY_OBJECTS = -10,
     VK_ERROR_FORMAT_NOT_SUPPORTED = -11,
-    VK_ERROR_FRAGMENTED_POOL = -12
+    VK_ERROR_FRAGMENTED_POOL = -12,
+    VK_SUBOPTIMAL_KHR = 1000001003,
+    VK_ERROR_OUT_OF_DATE_KHR = -1000001004
 } VkResult;
 
 typedef enum {
@@ -354,7 +411,9 @@ typedef enum {
     VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER = 45,
     VK_STRUCTURE_TYPE_MEMORY_BARRIER = 46,
     VK_STRUCTURE_TYPE_LOADER_INSTANCE_CREATE_INFO = 47,
-    VK_STRUCTURE_TYPE_LOADER_DEVICE_CREATE_INFO = 48
+    VK_STRUCTURE_TYPE_LOADER_DEVICE_CREATE_INFO = 48,
+    VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR = 1000001000,
+    VK_STRUCTURE_TYPE_PRESENT_INFO_KHR = 1000001001
 } VkStructureType;
 
 typedef enum {
@@ -368,6 +427,25 @@ typedef enum {
 typedef enum {
     VK_INTERNAL_ALLOCATION_TYPE_EXECUTABLE = 0
 } VkInternalAllocationType;
+
+typedef enum {
+    VK_SAMPLER_ADDRESS_MODE_REPEAT = 0,
+    VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT = 1,
+    VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE = 2,
+    VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER = 3,
+    VK_SAMPLER_ADDRESS_MODE_MIRROR_CLAMP_TO_EDGE = 4
+} VkSamplerAddressMode;
+
+typedef enum {
+    VK_FILTER_NEAREST = 0,
+    VK_FILTER_LINEAR = 1,
+    VK_FILTER_CUBIC_IMG = 1000015000
+} VkFilter;
+
+typedef enum {
+    VK_SAMPLER_MIPMAP_MODE_NEAREST = 0,
+    VK_SAMPLER_MIPMAP_MODE_LINEAR = 1
+} VkSamplerMipmapMode;
 
 typedef enum {
     VK_SAMPLE_COUNT_1_BIT = 1 << 0,
@@ -405,7 +483,8 @@ typedef enum {
     VK_OBJECT_TYPE_DESCRIPTOR_POOL = 22,
     VK_OBJECT_TYPE_DESCRIPTOR_SET = 23,
     VK_OBJECT_TYPE_FRAMEBUFFER = 24,
-    VK_OBJECT_TYPE_COMMAND_POOL = 25
+    VK_OBJECT_TYPE_COMMAND_POOL = 25,
+    VK_OBJECT_TYPE_SWAPCHAIN_KHR = 1000001000
 } VkObjectType;
 typedef void (VKAPI_PTR *PFN_vkInternalAllocationNotification)(
     void*                                       pUserData,
@@ -572,6 +651,12 @@ typedef struct {
 } VkAllocationCallbacks;
 
 typedef struct {
+    VkFormatFeatureFlags   linearTilingFeatures;
+    VkFormatFeatureFlags   optimalTilingFeatures;
+    VkFormatFeatureFlags   bufferFeatures;
+} VkFormatProperties;
+
+typedef struct {
     VkStructureType sType;
     const void*            pNext;
     VkBufferCreateFlags    flags;
@@ -591,6 +676,27 @@ typedef struct {
     VkDeviceSize           offset;
     VkDeviceSize           range;
 } VkBufferViewCreateInfo;
+
+typedef struct {
+    VkStructureType sType;
+    const void*            pNext;
+    VkSamplerCreateFlags   flags;
+    VkFilter               magFilter;
+    VkFilter               minFilter;
+    VkSamplerMipmapMode    mipmapMode;
+    VkSamplerAddressMode   addressModeU;
+    VkSamplerAddressMode   addressModeV;
+    VkSamplerAddressMode   addressModeW;
+    float                  mipLodBias;
+    VkBool32               anisotropyEnable;
+    float                  maxAnisotropy;
+    VkBool32               compareEnable;
+    VkCompareOp            compareOp;
+    float                  minLod;
+    float                  maxLod;
+    VkBorderColor          borderColor;
+    VkBool32               unnormalizedCoordinates;
+} VkSamplerCreateInfo;
 
 typedef struct {
     uint32_t               vertexCount;
@@ -618,6 +724,7 @@ PFN_vkVoidFunction vkGetInstanceProcAddr(VkInstance, const char*);
 /* Per-instance function pointers */
 struct FlextVkInstance {
     PFN_vkVoidFunction    (*GetDeviceProcAddr)(VkDevice, const char*);
+    void    (*GetPhysicalDeviceFormatProperties)(VkPhysicalDevice, VkFormat, VkFormatProperties*);
     void    (*GetPhysicalDeviceProperties)(VkPhysicalDevice, VkPhysicalDeviceProperties*);
 };
 
@@ -629,10 +736,12 @@ struct FlextVkDevice {
     void    (*CmdDrawIndexed)(VkCommandBuffer, uint32_t, uint32_t, uint32_t, int32_t, uint32_t);
     VkResult    (*CreateBuffer)(VkDevice, const VkBufferCreateInfo*, const VkAllocationCallbacks*, VkBuffer*);
     VkResult    (*CreateBufferView)(VkDevice, const VkBufferViewCreateInfo*, const VkAllocationCallbacks*, VkBufferView*);
+    VkResult    (*CreateSampler)(VkDevice, const VkSamplerCreateInfo*, const VkAllocationCallbacks*, VkSampler*);
 };
 
 void flextVkInitInstance(VkInstance instance, FlextVkInstance* data) {
     data->GetDeviceProcAddr = reinterpret_cast<PFN_vkVoidFunction(*)(VkDevice, const char*)>(vkGetInstanceProcAddr(instance, "vkGetDeviceProcAddr"));
+    data->GetPhysicalDeviceFormatProperties = reinterpret_cast<void(*)(VkPhysicalDevice, VkFormat, VkFormatProperties*)>(vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceFormatProperties"));
     data->GetPhysicalDeviceProperties = reinterpret_cast<void(*)(VkPhysicalDevice, VkPhysicalDeviceProperties*)>(vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceProperties"));
 }
 
@@ -640,4 +749,5 @@ void flextVkInitDevice(VkDevice device, FlextVkDevice* data, PFN_vkVoidFunction(
     data->CmdDrawIndexed = reinterpret_cast<void(*)(VkCommandBuffer, uint32_t, uint32_t, uint32_t, int32_t, uint32_t)>(getDeviceProcAddr(device, "vkCmdDrawIndexed"));
     data->CreateBuffer = reinterpret_cast<VkResult(*)(VkDevice, const VkBufferCreateInfo*, const VkAllocationCallbacks*, VkBuffer*)>(getDeviceProcAddr(device, "vkCreateBuffer"));
     data->CreateBufferView = reinterpret_cast<VkResult(*)(VkDevice, const VkBufferViewCreateInfo*, const VkAllocationCallbacks*, VkBufferView*)>(getDeviceProcAddr(device, "vkCreateBufferView"));
+    data->CreateSampler = reinterpret_cast<VkResult(*)(VkDevice, const VkSamplerCreateInfo*, const VkAllocationCallbacks*, VkSampler*)>(getDeviceProcAddr(device, "vkCreateSampler"));
 }
