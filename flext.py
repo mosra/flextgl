@@ -237,6 +237,53 @@ def xml_parse_type_name_pair(node):
     if ptype == None: ptype = node.find('type')
     return (name, type, ptype.text.strip() if ptype != None else None)
 
+def extract_enums(feature, enum_extensions, extension_number = None):
+    subsetEnums = []
+
+    for enum in feature.findall('enum'):
+        enum_name = enum.attrib['name']
+
+        if 'extends' in enum.attrib:
+            extends = enum.attrib['extends']
+
+            # VkSamplerAddressMode from VK_KHR_sampler_mirror_clamp_to_edge
+            # has an explicit value. The sanest way, yet they say "this
+            # is a special case, and should not be repeated".
+            if 'value' in enum.attrib:
+                value = enum.attrib['value']
+
+            # Bit position
+            elif 'bitpos' in enum.attrib:
+                value = '1 << {}'.format(enum.attrib['bitpos'])
+
+            # Calculate enum value from an overengineered set of
+            # inputs. See the spec for details:
+            # https://www.khronos.org/registry/vulkan/specs/1.1/styleguide.html#_assigning_extension_token_values
+            else:
+                base_value = 1000000000
+                range_size = 1000
+                if 'extnumber' in enum.attrib:
+                    number = int(enum.attrib['extnumber'])
+                else:
+                    assert extension_number
+                    number = extension_number
+                value = base_value + (int(number) - 1)*range_size + int(enum.attrib['offset'])
+                if enum.attrib.get('dir') == '-': value *= -1
+                value = str(value)
+
+            if extends not in enum_extensions: enum_extensions[extends] = []
+            enum_extensions[extends] += [(enum_name, value)]
+
+        else:
+            # Vulkan enums can provide the value directly next to
+            # referencing some external enum value
+            if 'value' in enum.attrib:
+                subsetEnums += [(enum_name, enum.attrib['value'])]
+            else:
+                subsetEnums += [(enum_name, None)]
+
+    return subsetEnums, enum_extensions
+
 def extract_names(feature, selector):
     return [element.attrib['name'] for element in feature.findall('./%s[@name]' % selector)]
 
@@ -390,6 +437,7 @@ def parse_xml_commands(root, type_map):
     return commands
 
 def parse_xml_features(root, version):
+    enum_extensions = {}
     subsets = []
 
     for feature in root.findall("./feature[@api='%s'][@name][@number]" % version.api):
@@ -410,7 +458,8 @@ def parse_xml_features(root, version):
                 typeList.extend(extract_names(actionSet, './type'))
                 commandList.extend(extract_names(actionSet, './command'))
 
-                enumList += [(element.attrib['name'], None) for element in actionSet.findall('./enum[@name]')]
+                enums_to_add, enum_extensions = extract_enums(actionSet, enum_extensions)
+                enumList += enums_to_add
 
             if actionSet.tag == 'remove':
                 for subset in subsets:
@@ -420,7 +469,7 @@ def parse_xml_features(root, version):
 
         subsets.append(APISubset(featureName[3:], typeList, enumList, commandList))
 
-    return subsets
+    return subsets, enum_extensions
 
 def parse_xml_extensions(root, extensions, version):
     enum_extensions = {}
@@ -443,46 +492,13 @@ def parse_xml_extensions(root, extensions, version):
                 if require.attrib['api'] != version.api: continue
                 if 'profile' in require.attrib and require.attrib['profile'] != version.profile: continue
 
-            # Vulkan enum types can be extended
-            for enum in require.findall('enum'):
-                enum_name = enum.attrib['name']
-
-                if 'extends' in enum.attrib:
-                    extends = enum.attrib['extends']
-
-                    # VkSamplerAddressMode from VK_KHR_sampler_mirror_clamp_to_edge
-                    # has an explicit value. The sanest way, yet they say "this
-                    # is a special case, and should not be repeated".
-                    if 'value' in enum.attrib:
-                        value = enum.attrib['value']
-
-                    # Bit position
-                    elif 'bitpos' in enum.attrib:
-                        value = '1 << {}'.format(enum.attrib['bitpos'])
-
-                    # Calculate enum value from an overengineered set of
-                    # inputs. See the spec for details:
-                    # https://www.khronos.org/registry/vulkan/specs/1.1/styleguide.html#_assigning_extension_token_values
-                    else:
-                        base_value = 1000000000
-                        range_size = 1000
-                        value = base_value + (int(extension.attrib['number']) - 1)*range_size + int(enum.attrib['offset'])
-                        if enum.attrib.get('dir') == '-': value *= -1
-                        value = str(value)
-
-                    if extends not in enum_extensions: enum_extensions[extends] = []
-                    enum_extensions[extends] += [(enum_name, value)]
-
-                else:
-                    # Vulkan enums can provide the value directly next to
-                    # referencing some external enum value
-                    if 'value' in enum.attrib:
-                        subsetEnums += [(enum_name, enum.attrib['value'])]
-                    else:
-                        subsetEnums += [(enum_name, None)]
-
             subsetTypes += extract_names(require, 'type')
             subsetCommands += extract_names(require, 'command')
+
+            # The 'number' attribute is available only in vk.xml, extract_enums()
+            # asserts that it's available if needed
+            enums_to_add, enum_extensions = extract_enums(require, enum_extensions, extension.attrib.get('number'))
+            subsetEnums += enums_to_add
 
         subsets.append(APISubset(name, subsetTypes, subsetEnums, subsetCommands))
 
@@ -609,9 +625,10 @@ def parse_xml(file, version, extensions, funcslist, funcsblacklist):
     tree = etree.parse(os.path.join(spec_dir, file))
     root = tree.getroot()
 
-    subsets  = parse_xml_features(root, version)
-    subset_extensions, enum_extensions = parse_xml_extensions(root, extensions, version)
+    subsets, enum_extensions = parse_xml_features(root, version)
+    subset_extensions, extension_enum_extensions = parse_xml_extensions(root, extensions, version)
     subsets += subset_extensions
+    enum_extensions.update(extension_enum_extensions)
 
     types, type_map = parse_xml_types(root, enum_extensions, version.api)
     raw_enums = parse_xml_enums(root, version.api)
