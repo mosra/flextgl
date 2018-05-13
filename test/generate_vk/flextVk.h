@@ -23,6 +23,11 @@
 #define VK_QUEUE_FAMILY_IGNORED (~0U)
 #define VK_SUBPASS_EXTERNAL (~0U)
 
+/* VK_NV_dedicated_allocation */
+
+#define VK_NV_DEDICATED_ALLOCATION_SPEC_VERSION 1
+#define VK_NV_DEDICATED_ALLOCATION_EXTENSION_NAME "VK_NV_dedicated_allocation"
+
 /* VK_KHR_swapchain */
 
 #define VK_KHR_SWAPCHAIN_SPEC_VERSION 68
@@ -410,6 +415,9 @@ typedef enum {
     VK_STRUCTURE_TYPE_MEMORY_BARRIER = 46,
     VK_STRUCTURE_TYPE_LOADER_INSTANCE_CREATE_INFO = 47,
     VK_STRUCTURE_TYPE_LOADER_DEVICE_CREATE_INFO = 48,
+    VK_STRUCTURE_TYPE_DEDICATED_ALLOCATION_IMAGE_CREATE_INFO_NV = 1000026000,
+    VK_STRUCTURE_TYPE_DEDICATED_ALLOCATION_BUFFER_CREATE_INFO_NV = 1000026001,
+    VK_STRUCTURE_TYPE_DEDICATED_ALLOCATION_MEMORY_ALLOCATE_INFO_NV = 1000026002,
     VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR = 1000001000,
     VK_STRUCTURE_TYPE_PRESENT_INFO_KHR = 1000001001
 } VkStructureType;
@@ -716,6 +724,12 @@ typedef struct {
     uint32_t               y;
     uint32_t               z;
 } VkDispatchIndirectCommand;
+
+typedef struct {
+    VkStructureType sType;
+    const void*                      pNext;
+    VkBool32                         dedicatedAllocation;
+} VkDedicatedAllocationBufferCreateInfoNV;
 
 PFN_vkVoidFunction vkGetInstanceProcAddr(VkInstance, const char*);
 

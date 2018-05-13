@@ -1,5 +1,9 @@
 version 1.0 vulkan
 
+# To check structextends: no new command is added, only extending existing
+# struct VkBufferCreateInfo
+extension NV_dedicated_allocation optional
+
 # To check general extension parsing and enum extension with offset and dir
 extension KHR_swapchain optional
 
@@ -24,6 +28,7 @@ begin functions
     # flags
     CreateBufferView
 
+    # To check that VkDedicatedAllocationBufferCreateInfoNV gets pulled in
     CreateBuffer
 
     # To verify VkSamplerCreateInfo extensions are parsed correctly

@@ -196,14 +196,15 @@ class APISubset:
         self.commands = commands
 
 class Type:
-    def __init__(self, api, name, definition, is_bitmask, required_types, required_enums):
+    def __init__(self, api, name, definition, is_bitmask, required_types, required_enums, struct_extends):
         self.api        = api
         self.name       = name
         self.definition = definition
-        self.is_dependent = False
+        self.is_dependent = bool(struct_extends)
         self.is_bitmask = is_bitmask
         self.required_types = required_types
         self.required_enums = required_enums
+        self.struct_extends = struct_extends
 
 class Command:
     def __init__(self, rettype, name, params, requiredTypes):
@@ -321,7 +322,7 @@ def parse_xml_types(root, enum_extensions, api):
         # anything.
         assert not type or definition.strip()
 
-        types.append(Type(type.attrib['api'] if 'api' in type.attrib else None, name, definition, type.attrib.get('category') == 'bitmask', dependencies, enum_dependencies))
+        types.append(Type(type.attrib['api'] if 'api' in type.attrib else None, name, definition, type.attrib.get('category') == 'bitmask', dependencies, enum_dependencies, type.attrib['structextends'].split(',') if 'structextends' in type.attrib else []))
 
     # Go through type list and keep only unique names. Because the
     # specializations are at the end, going in reverse will select only the
@@ -590,6 +591,17 @@ def resolve_type_dependencies(subsets, requiredTypes, types):
         if type.name in requiredTypes:
             requiredTypes |= type.required_types
             requiredEnums |= type.required_enums
+
+    # If there are types that extend required types, add them as well. This is
+    # done after everything else, so extensions that are not to top-level types
+    # are included as well.
+    for type in types:
+        if type.name in types_from_subsets:
+            for base in type.struct_extends:
+                if base in requiredTypes:
+                    requiredTypes.add(type.name)
+                    requiredTypes |= type.required_types
+                    requiredEnums |= type.required_enums
 
     return requiredTypes, requiredEnums
 
