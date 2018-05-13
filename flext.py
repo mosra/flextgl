@@ -344,15 +344,22 @@ def parse_xml_types(root, enum_extensions, api):
         for dependency in type.required_types:
             unique_type_names[dependency].is_dependent = True
 
-    # Bubble up recursive type dependencies
+    # Bubble up recursive type dependencies. A type dependency can also have a
+    # transitive enum dependency, but that's fortunately not recursive, so we
+    # recurse only for types.
     def gather_type_dependencies(type):
         dependencies = set()
+        enum_dependencies = set()
         for d in type.required_types:
             dependencies.add(d)
-            dependencies |= gather_type_dependencies(unique_type_names[d])
-        return dependencies
+            new_dependencies, new_enum_dependencies = gather_type_dependencies(unique_type_names[d])
+            dependencies |= new_dependencies
+            enum_dependencies |= new_enum_dependencies
+        for d in type.required_enums:
+            enum_dependencies.add(d)
+        return dependencies, enum_dependencies
     for type in unique_types:
-        type.required_types = gather_type_dependencies(type)
+        type.required_types, type.required_enums = gather_type_dependencies(type)
 
     # Reverse the list again to keep the original order
     return [t for t in reversed(unique_types)], unique_type_names
