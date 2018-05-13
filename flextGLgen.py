@@ -19,7 +19,7 @@ def main(options, profile):
                           extensions, types, raw_enums)
 
     
-def parse_args():
+def parse_args(): # pragma: no cover
     parser = OptionParser(usage='Usage: %prog [options] filename')
     parser.add_option('-d', '--download',
                       action='store_true', dest='download', default=False,
@@ -45,6 +45,6 @@ def parse_args():
     return options, args[0]
     
 
-if __name__ == "__main__":
+if __name__ == "__main__": # pragma: no cover
     # Read command line arguments and profile settings
     main(*parse_args())
