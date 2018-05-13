@@ -26,7 +26,7 @@ default_template_root = os.path.join(script_dir, 'templates')
 ################################################################################
 
 gl_spec_url = 'http://www.opengl.org/registry/api/gl.xml'
-vk_spec_url = 'https://raw.githubusercontent.com/KhronosGroup/Vulkan-LoaderAndValidationLayers/sdk-1.0.68.0/scripts/vk.xml'
+vk_spec_url = 'https://raw.githubusercontent.com/KhronosGroup/Vulkan-Headers/master/registry/vk.xml'
 
 ################################################################################
 # Spec file download
