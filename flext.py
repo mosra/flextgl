@@ -491,8 +491,8 @@ def generate_passthru(dependencies, types):
     written_types = set()
 
     def write_type(type, written_types, passthru):
-        # We're handling vk_platform ourselves
-        if not type.definition or type.name in ['vk_platform']:
+        # We're handling vk_platform ourselves; VK_API_VERSION is deprecated
+        if not type.definition or type.name in ['vk_platform', 'VK_API_VERSION']:
             return passthru
 
         # Ensure all dependencies are written already. Using a simple linear
