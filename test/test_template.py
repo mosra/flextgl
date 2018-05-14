@@ -95,3 +95,12 @@ class Sdl(BaseTestCase):
         self.run_flextglgen('profile.txt')
         self.assertEqual(*self.actual_expected_contents('flextGL.c'))
         self.assertEqual(*self.actual_expected_contents('flextGL.h'))
+
+class Vulkan(BaseTestCase):
+    def __init__(self, *args, **kwargs):
+        super().__init__(__file__, 'vulkan', *args, **kwargs)
+
+    def test(self):
+        self.run_flextglgen('profile-vk.txt')
+        self.assertEqual(*self.actual_expected_contents('flextVk.cpp'))
+        self.assertEqual(*self.actual_expected_contents('flextVk.h'))
