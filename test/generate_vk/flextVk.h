@@ -10,6 +10,7 @@
 
 #define VK_MAX_PHYSICAL_DEVICE_NAME_SIZE 256
 #define VK_UUID_SIZE 16
+#define VK_QUEUE_FAMILY_EXTERNAL (~0U-1)
 
 /* VK_VERSION_1_0 */
 
@@ -43,6 +44,17 @@
 #define VK_IMG_FILTER_CUBIC_SPEC_VERSION 1
 #define VK_IMG_FILTER_CUBIC_EXTENSION_NAME "VK_IMG_filter_cubic"
 
+/* VK_KHR_external_memory */
+
+#define VK_KHR_EXTERNAL_MEMORY_SPEC_VERSION 1
+#define VK_KHR_EXTERNAL_MEMORY_EXTENSION_NAME "VK_KHR_external_memory"
+#define VK_QUEUE_FAMILY_EXTERNAL_KHR VK_QUEUE_FAMILY_EXTERNAL
+
+/* VK_KHR_get_physical_device_properties2 */
+
+#define VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_SPEC_VERSION 1
+#define VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME "VK_KHR_get_physical_device_properties2"
+
 /* Data types */
 
 typedef std::size_t size_t;
@@ -74,6 +86,7 @@ typedef VkFlags VkBufferUsageFlags;
 typedef VkFlags VkBufferCreateFlags;
 typedef VkFlags VkFormatFeatureFlags;
 typedef VkFlags VkSampleCountFlags;
+typedef VkFlags VkExternalMemoryHandleTypeFlags;
 VK_DEFINE_HANDLE(VkInstance)
 VK_DEFINE_HANDLE(VkPhysicalDevice)
 VK_DEFINE_HANDLE(VkDevice)
@@ -362,7 +375,8 @@ typedef enum {
     VK_ERROR_FORMAT_NOT_SUPPORTED = -11,
     VK_ERROR_FRAGMENTED_POOL = -12,
     VK_SUBOPTIMAL_KHR = 1000001003,
-    VK_ERROR_OUT_OF_DATE_KHR = -1000001004
+    VK_ERROR_OUT_OF_DATE_KHR = -1000001004,
+    VK_ERROR_INVALID_EXTERNAL_HANDLE_KHR = -1000072003
 } VkResult;
 
 typedef enum {
@@ -425,7 +439,19 @@ typedef enum {
     VK_STRUCTURE_TYPE_BIND_IMAGE_MEMORY_SWAPCHAIN_INFO_KHR = 1000060009,
     VK_STRUCTURE_TYPE_ACQUIRE_NEXT_IMAGE_INFO_KHR = 1000060010,
     VK_STRUCTURE_TYPE_DEVICE_GROUP_PRESENT_INFO_KHR = 1000060011,
-    VK_STRUCTURE_TYPE_DEVICE_GROUP_SWAPCHAIN_CREATE_INFO_KHR = 1000060012
+    VK_STRUCTURE_TYPE_DEVICE_GROUP_SWAPCHAIN_CREATE_INFO_KHR = 1000060012,
+    VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_BUFFER_CREATE_INFO_KHR = 1000072000,
+    VK_STRUCTURE_TYPE_EXTERNAL_MEMORY_IMAGE_CREATE_INFO_KHR = 1000072001,
+    VK_STRUCTURE_TYPE_EXPORT_MEMORY_ALLOCATE_INFO_KHR = 1000072002,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2_KHR = 1000059000,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2_KHR = 1000059001,
+    VK_STRUCTURE_TYPE_FORMAT_PROPERTIES_2_KHR = 1000059002,
+    VK_STRUCTURE_TYPE_IMAGE_FORMAT_PROPERTIES_2_KHR = 1000059003,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_IMAGE_FORMAT_INFO_2_KHR = 1000059004,
+    VK_STRUCTURE_TYPE_QUEUE_FAMILY_PROPERTIES_2_KHR = 1000059005,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MEMORY_PROPERTIES_2_KHR = 1000059006,
+    VK_STRUCTURE_TYPE_SPARSE_IMAGE_FORMAT_PROPERTIES_2_KHR = 1000059007,
+    VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SPARSE_IMAGE_FORMAT_INFO_2_KHR = 1000059008
 } VkStructureType;
 
 typedef enum {
@@ -468,6 +494,16 @@ typedef enum {
     VK_SAMPLE_COUNT_32_BIT = 1 << 5,
     VK_SAMPLE_COUNT_64_BIT = 1 << 6
 } VkSampleCountFlagBits;
+
+typedef enum {
+    VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT = 1 << 0,
+    VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_BIT = 1 << 1,
+    VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_WIN32_KMT_BIT = 1 << 2,
+    VK_EXTERNAL_MEMORY_HANDLE_TYPE_D3D11_TEXTURE_BIT = 1 << 3,
+    VK_EXTERNAL_MEMORY_HANDLE_TYPE_D3D11_TEXTURE_KMT_BIT = 1 << 4,
+    VK_EXTERNAL_MEMORY_HANDLE_TYPE_D3D12_HEAP_BIT = 1 << 5,
+    VK_EXTERNAL_MEMORY_HANDLE_TYPE_D3D12_RESOURCE_BIT = 1 << 6
+} VkExternalMemoryHandleTypeFlagBits;
 typedef void (VKAPI_PTR *PFN_vkInternalAllocationNotification)(
     void*                                       pUserData,
     size_t                                      size,
@@ -707,10 +743,27 @@ typedef struct {
     VkBool32                         dedicatedAllocation;
 } VkDedicatedAllocationBufferCreateInfoNV;
 
+typedef struct {
+    VkStructureType sType;
+    void*                            pNext;
+    VkPhysicalDeviceProperties       properties;
+} VkPhysicalDeviceProperties2;
+
+typedef VkPhysicalDeviceProperties2 VkPhysicalDeviceProperties2KHR;
+
+typedef struct {
+    VkStructureType sType;
+    const void*                      pNext;
+    VkExternalMemoryHandleTypeFlags handleTypes;
+} VkExternalMemoryBufferCreateInfo;
+
+typedef VkExternalMemoryBufferCreateInfo VkExternalMemoryBufferCreateInfoKHR;
+
 PFN_vkVoidFunction vkGetInstanceProcAddr(VkInstance, const char*);
 
 /* Per-instance function pointers */
 struct FlextVkInstance {
+    void    (*GetPhysicalDeviceProperties2KHR)(VkPhysicalDevice, VkPhysicalDeviceProperties2*);
     PFN_vkVoidFunction    (*GetDeviceProcAddr)(VkDevice, const char*);
     void    (*GetPhysicalDeviceFormatProperties)(VkPhysicalDevice, VkFormat, VkFormatProperties*);
     void    (*GetPhysicalDeviceProperties)(VkPhysicalDevice, VkPhysicalDeviceProperties*);
@@ -728,6 +781,7 @@ struct FlextVkDevice {
 };
 
 void flextVkInitInstance(VkInstance instance, FlextVkInstance* data) {
+    data->GetPhysicalDeviceProperties2KHR = reinterpret_cast<void(*)(VkPhysicalDevice, VkPhysicalDeviceProperties2*)>(vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceProperties2KHR"));
     data->GetDeviceProcAddr = reinterpret_cast<PFN_vkVoidFunction(*)(VkDevice, const char*)>(vkGetInstanceProcAddr(instance, "vkGetDeviceProcAddr"));
     data->GetPhysicalDeviceFormatProperties = reinterpret_cast<void(*)(VkPhysicalDevice, VkFormat, VkFormatProperties*)>(vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceFormatProperties"));
     data->GetPhysicalDeviceProperties = reinterpret_cast<void(*)(VkPhysicalDevice, VkPhysicalDeviceProperties*)>(vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceProperties"));

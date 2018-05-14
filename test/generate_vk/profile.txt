@@ -13,6 +13,13 @@ extension KHR_sampler_mirror_clamp_to_edge optional
 # To check that enum extensions with bitpos are handled correctly
 extension IMG_filter_cubic optional
 
+# To check type, define and enum aliases and that only aliases for sources that
+# are required get pulled in
+extension KHR_external_memory optional
+
+# To check command aliases
+extension KHR_get_physical_device_properties2 optional
+
 begin functions
     CmdDraw
     CmdDrawIndexed
@@ -33,6 +40,10 @@ begin functions
 
     # To verify VkSamplerCreateInfo extensions are parsed correctly
     CreateSampler
+
+    # To verify command aliases and that type aliases that are otherwise not
+    # referenced are pulled in as well
+    GetPhysicalDeviceProperties2KHR
 end functions
 
 begin functions blacklist

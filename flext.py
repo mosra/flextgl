@@ -196,7 +196,7 @@ class APISubset:
         self.commands = commands
 
 class Type:
-    def __init__(self, api, name, definition, is_bitmask, required_types, required_enums, struct_extends):
+    def __init__(self, api, name, definition, is_bitmask, required_types, required_enums, struct_extends, alias):
         self.api        = api
         self.name       = name
         self.definition = definition
@@ -205,6 +205,7 @@ class Type:
         self.required_types = required_types
         self.required_enums = required_enums
         self.struct_extends = struct_extends
+        self.alias      = alias
 
 class Command:
     def __init__(self, rettype, name, params, requiredTypes):
@@ -256,6 +257,10 @@ def extract_enums(feature, enum_extensions, extension_number = None):
             elif 'bitpos' in enum.attrib:
                 value = '1 << {}'.format(enum.attrib['bitpos'])
 
+            # Alias
+            elif 'alias' in enum.attrib:
+                value = enum.attrib['alias']
+
             # Calculate enum value from an overengineered set of
             # inputs. See the spec for details:
             # https://www.khronos.org/registry/vulkan/specs/1.1/styleguide.html#_assigning_extension_token_values
@@ -302,13 +307,18 @@ def parse_xml_enums(root, api):
             value = "%s%s" % (enum.attrib['value'], enum.attrib['type'])
         elif 'bitpos' in enum.attrib:
             value = "1 << {}".format(enum.attrib['bitpos'])
-        else:
+        # GL defines both value and alias, prefer values because the original
+        # aliased value might not exist
+        elif 'value' in enum.attrib:
             value = enum.attrib['value']
+        else:
+            value = enum.attrib['alias']
+            assert value in enums
         enums[name] = value
 
     return enums
 
-def parse_xml_types(root, enum_extensions, api):
+def parse_xml_types(root, enum_extensions, promoted_enum_extensions, api):
     types = []
 
     for type in root.findall("./types/type"):
@@ -322,8 +332,15 @@ def parse_xml_types(root, enum_extensions, api):
         if 'requires' in type.attrib:
             dependencies |= set([type.attrib['requires']])
 
+        # Vulkan type aliases
+        alias = None
+        if 'alias' in type.attrib:
+            dependencies.add(type.attrib['alias']);
+            definition = '\ntypedef {} {};'.format(type.attrib['alias'], type.attrib['name'])
+            alias = type.attrib['alias']
+
         # Struct / union definition in Vulkan
-        if 'category' in type.attrib and type.attrib['category'] in ['struct', 'union']:
+        elif 'category' in type.attrib and type.attrib['category'] in ['struct', 'union']:
             members = []
             for m in type.findall('member'):
                 members += ['    {};'.format(xml_extract_all_text(m, {'comment': ''}))]
@@ -347,8 +364,19 @@ def parse_xml_types(root, enum_extensions, api):
                     else:
                         values += ['    {} = {}'.format(enum.attrib['name'], enum.attrib['value'])]
                 if name in enum_extensions:
+
+                    # Extension enum values might be promoted to core in later
+                    # versions, create a map with their values to avoid having
+                    # aliases to nonexistent values
+                    extensions = {}
+                    if name in promoted_enum_extensions:
+                        for value, number in promoted_enum_extensions[name]:
+                            extensions[value] = number
+
+                    # Value is either a concrete value, an existing alias or
+                    # an extracted value from a promoted alias above
                     for extension, value in enum_extensions[name]:
-                        values += ['    {} = {}'.format(extension, value)]
+                        values += ['    {} = {}'.format(extension, extensions[value] if value in extensions else value)]
 
                 definition = '\ntypedef enum {{\n{}\n}} {};'.format(',\n'.join(values), name)
 
@@ -369,7 +397,7 @@ def parse_xml_types(root, enum_extensions, api):
         # anything.
         assert not type or definition.strip()
 
-        types.append(Type(type.attrib['api'] if 'api' in type.attrib else None, name, definition, type.attrib.get('category') == 'bitmask', dependencies, enum_dependencies, type.attrib['structextends'].split(',') if 'structextends' in type.attrib else []))
+        types.append(Type(type.attrib['api'] if 'api' in type.attrib else None, name, definition, type.attrib.get('category') == 'bitmask', dependencies, enum_dependencies, type.attrib['structextends'].split(',') if 'structextends' in type.attrib else [], alias))
 
     # Go through type list and keep only unique names. Because the
     # specializations are at the end, going in reverse will select only the
@@ -391,6 +419,12 @@ def parse_xml_types(root, enum_extensions, api):
     for type in unique_types:
         for dependency in type.required_types:
             unique_type_names[dependency].is_dependent = True
+
+    # Resolve dependency information for aliases the same as their sources
+    for type in unique_types:
+        if not type.alias: continue
+        type.is_dependent = unique_type_names[type.alias].is_dependent
+        type.struct_extends = unique_type_names[type.alias].struct_extends
 
     # Bubble up recursive type dependencies. A type dependency can also have a
     # transitive enum dependency, but that's fortunately not recursive, so we
@@ -416,6 +450,14 @@ def parse_xml_commands(root, type_map):
     commands = {}
 
     for cmd in root.findall("./commands/command"):
+        if 'alias' in cmd.attrib:
+            # Assuming the alias is always defined *after* the command it
+            # aliases
+            name = cmd.attrib['name']
+            aliased = commands[cmd.attrib['alias']]
+            commands[name] = Command(aliased.returntype, name, aliased.params, aliased.requiredTypes)
+            continue
+
         requiredTypes = set()
         name, rettype, requiredType = xml_parse_type_name_pair(cmd.find('./proto'))
         if requiredType!=None:
@@ -438,10 +480,16 @@ def parse_xml_commands(root, type_map):
 
 def parse_xml_features(root, version):
     enum_extensions = {}
+    promoted_enum_extensions = {}
     subsets = []
 
     for feature in root.findall("./feature[@api='%s'][@name][@number]" % version.api):
+        # Some Vulkan extension enums get promoted to core in later versions
+        # and we can't ignore them because the extension enums would then alias
+        # to nonexistent values
         if (parse_int_version(feature.attrib['number'])>version.int_value()):
+            for actionSet in list(feature):
+                _, promoted_enum_extensions = extract_enums(actionSet, promoted_enum_extensions)
             continue
 
         featureName = feature.attrib['name']
@@ -469,10 +517,9 @@ def parse_xml_features(root, version):
 
         subsets.append(APISubset(featureName[3:], typeList, enumList, commandList))
 
-    return subsets, enum_extensions
+    return subsets, enum_extensions, promoted_enum_extensions
 
-def parse_xml_extensions(root, extensions, version):
-    enum_extensions = {}
+def parse_xml_extensions(root, extensions, enum_extensions, version):
     subsets = []
 
     for name, _ in extensions:
@@ -540,6 +587,14 @@ def generate_passthru(dependencies, types):
     return passthru
 
 def generate_enums(subsets, requiredEnums, enums, version):
+    # Vulkan enum values can alias each other, ensure that the alias source is
+    # pulled in as well. Assume there's no recursive dependency.
+    for subset in subsets:
+        for enumName, _ in subset.enums:
+            if enumName in enums and enums[enumName] in enums:
+                requiredEnums.add(enums[enumName])
+                assert enums[enums[enumName]] not in enums
+
     enumsDecl = ''
 
     # Vulkan API constants that are required by type definitions but not part
@@ -594,11 +649,16 @@ def resolve_type_dependencies(subsets, requiredTypes, types):
     for subset in subsets:
         types_from_subsets |= set(subset.types)
 
-    # If given type is a top-level one required by one of the subsets (i.e.,
-    # not referenced (indirectly) by any command such as indirect draw
-    # structures), include it as well.
     for type in types:
+        # If given type is a top-level one required by one of the subsets
+        # (i.e., not referenced (indirectly) by any command such as indirect
+        # draw structures), include it as well.
         if type.name in types_from_subsets and not type.is_dependent:
+            requiredTypes.add(type.name)
+
+        # If given type is required by one of the subsets and is an alias to a
+        # type that's required, include it too.
+        if type.name in types_from_subsets and type.alias in requiredTypes:
             requiredTypes.add(type.name)
 
     # If given type is required, add also all its dependencies to required
@@ -625,12 +685,12 @@ def parse_xml(file, version, extensions, funcslist, funcsblacklist):
     tree = etree.parse(os.path.join(spec_dir, file))
     root = tree.getroot()
 
-    subsets, enum_extensions = parse_xml_features(root, version)
-    subset_extensions, extension_enum_extensions = parse_xml_extensions(root, extensions, version)
+    subsets, enum_extensions, promoted_enum_extensions = parse_xml_features(root, version)
+    subset_extensions, extension_enum_extensions = parse_xml_extensions(root, extensions, enum_extensions, version)
     subsets += subset_extensions
     enum_extensions.update(extension_enum_extensions)
 
-    types, type_map = parse_xml_types(root, enum_extensions, version.api)
+    types, type_map = parse_xml_types(root, enum_extensions, promoted_enum_extensions, version.api)
     raw_enums = parse_xml_enums(root, version.api)
     commands = parse_xml_commands(root, type_map)
 
