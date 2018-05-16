@@ -2,7 +2,8 @@
 #ifndef _flextvk_h_
 #define _flextvk_h_
 
-#include <cstdint>
+#include <stdint.h>
+#include <stddef.h>
 
 /* Defensive include guards */
 
@@ -48,8 +49,6 @@ extern "C" {
 @enums
 
 /* Data types */
-
-typedef std::size_t size_t;
 
 @passthru
 

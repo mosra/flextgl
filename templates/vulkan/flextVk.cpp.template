@@ -1,5 +1,4 @@
 @require(passthru, functions, enums, options, version, extensions)
-
 #include "flextVk.h"
 
 @for category,funcs in functions:
