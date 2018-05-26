@@ -1,0 +1,78 @@
+@require(passthru, functions, enums, options, version, extensions)
+/* A minimal template to test all corner cases. Not to be used directly. */
+
+#include <cstdint>
+
+#define VKAPI_PTR
+
+/* @str(version) */
+
+/* Enums */
+
+@enums
+
+/* Data types */
+
+typedef std::size_t size_t;
+
+@passthru
+
+@for cat,funcs in functions:
+@for f in funcs:
+@if f.name in ['GetInstanceProcAddr', 'EnumerateInstanceExtensionProperties', 'EnumerateInstanceLayerProperties', 'CreateInstance']:
+@f.returntype vk@f.name\
+(@f.param_type_list_string());
+@end
+@end
+@end
+
+/* Per-instance function pointers */
+struct FlextVkInstance {
+    @for cat,funcs in functions:
+    @for f in funcs:
+    @if (f.params[0][1] in ['VkInstance', 'VkPhysicalDevice'] or f.name == 'GetDeviceProcAddr') and f.name != 'GetInstanceProcAddr':
+    @f.returntype\
+    (*@f.name)(@f.param_type_list_string());
+    @end
+    @end
+    @end
+};
+
+/* Per-instance function pointer initialization */
+void flextVkInitInstance(VkInstance instance, FlextVkInstance* data);
+
+/* Per-device function pointers */
+struct FlextVkDevice {
+    @for cat,funcs in functions:
+    @for f in funcs:
+    @if f.params[0][1] not in ['VkInstance', 'VkPhysicalDevice'] and f.name not in ['GetInstanceProcAddr', 'GetDeviceProcAddr', 'EnumerateInstanceExtensionProperties', 'EnumerateInstanceLayerProperties', 'CreateInstance']:
+    @f.returntype\
+    (*@f.name)(@f.param_type_list_string());
+    @end
+    @end
+    @end
+};
+
+void flextVkInitInstance(VkInstance instance, FlextVkInstance* data) {
+    @for category,funcs in functions:
+    @if funcs:
+    @for f in funcs:
+    @if (f.params[0][1] in ['VkInstance', 'VkPhysicalDevice'] or f.name == 'GetDeviceProcAddr') and f.name != 'GetInstanceProcAddr':
+    data->@f.name = reinterpret_cast<@f.returntype\
+(*)(@f.param_type_list_string())>(vkGetInstanceProcAddr(instance, "vk@f.name"));
+    @end
+    @end
+    @end
+    @end
+}
+
+void flextVkInitDevice(VkDevice device, FlextVkDevice* data, PFN_vkVoidFunction( *getDeviceProcAddr)(VkDevice, const char*)) {
+    @for category,funcs in functions:
+    @for f in funcs:
+    @if f.params[0][1] not in ['VkInstance', 'VkPhysicalDevice'] and f.name not in ['GetInstanceProcAddr', 'GetDeviceProcAddr', 'EnumerateInstanceExtensionProperties', 'EnumerateInstanceLayerProperties', 'CreateInstance']:
+    data->@f.name = reinterpret_cast<@f.returntype\
+(*)(@f.param_type_list_string())>(getDeviceProcAddr(device, "vk@f.name"));
+    @end
+    @end
+    @end
+}

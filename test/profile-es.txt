@@ -1,0 +1,10 @@
+version 2.0 es
+
+extension OES_vertex_array_object optional
+
+begin functions
+    DrawElements
+
+    # To verify stuff from OES_vertex_array_object is picked up
+    GenVertexArraysOES
+end functions

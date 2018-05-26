@@ -1,0 +1,10 @@
+version 3.2 core
+
+extension ARB_tessellation_shader optional
+
+begin functions
+    DrawElements
+
+    # To verify stuff from ARB_tessellation_shader is picked up
+    PatchParameteri
+end functions

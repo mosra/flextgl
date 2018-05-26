@@ -74,9 +74,22 @@ variable. For OpenGL ES a typical profile might look like:
     extension OES_standard_derivatives optional
     extension OES_vertex_array_object optional
 
+A Vulkan profile, whitelisting only some particular functions, can look like:
+
+    version 1.1 vulkan
+
+    extension KHR_swapchain optional
+
+    begin functions
+        CreateInstance
+        CreateBuffer
+        CmdDraw
+        CreateSwapchainKHR
+    end functions
+
 The profile file is then passed to the script like this:
 
-    $ python flextGLgen.py -D generated profile.txt
+    $ python flextGLgen.py -D generated -t <template-of-your-choice> profile.txt
 
 This  will  create  the  requested  source  code and  put  it  in  the
 'generated' directory.
@@ -135,6 +148,9 @@ At the moment, there are three template sets available:
 * `'lite'`
   > A variant of the `compatible` template that generates more compact code
   > It has not been thoroughly tested yet, though.
+
+* `'vulkan'`
+  > A basic loader for Vulkan
 
 Installing Wheezy Template on Windows
 -------------------------------------
