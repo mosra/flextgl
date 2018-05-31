@@ -23,12 +23,12 @@ You will need the following dependencies:
 
 ### What's new?
 
-* **January 30 2015:** Adding function whitelist and `lite` template
-
-* **August 7 2014:** Adding support for generating OpenGL ES loading code
-
-* **July 10 2014:** flextGL now parses `gl.xml` instead of the deprecated `.spec` files.
-
+-   **May 2018:** Vulkan support, 100% test coverage, @mosra took over the
+    maintainership
+-   **January 30 2015:** Adding function whitelist and `lite` template
+-   **August 7 2014:** Adding support for generating OpenGL ES loading code
+-   **July 10 2014:** flextGL now parses `gl.xml` instead of the deprecated
+    `.spec` files.
 
 Source tree
 -----------
@@ -57,8 +57,8 @@ Source tree
 Usage
 -----
 
-You create your  loader code by writing a profile  file and passing it
-to the script.
+You create your loader code by writing a profile file and passing it to the
+script.
 
 Here is what a typical profile might look like:
 
@@ -66,12 +66,12 @@ Here is what a typical profile might look like:
     extension EXT_texture_filter_anisotropic optional
     extension ARB_tesselation_shader optional
 
-This  requests   an  OpenGL  core  profile  and   the  extensions  for
-anisotropic filtering and  tesselation shaders. Those extensions  were
-requested  as 'optional'. This  means that  a missing  extension won't
-cause  an error.  Instead, the  programmer will  have to  check before
-using  it. This  can  be easily  done  by testing  a generated  global
-variable. For OpenGL ES a typical profile might look like:
+This requests  an OpenGL core profile and  the extensions for anisotropic
+filtering and tesselation shaders. Those extensions were requested as
+`optional`. This means that a missing extension won't cause an error. Instead,
+the programmer will have to check before using it. This can be easily done by
+testing a generated global variable. For OpenGL ES a typical profile might look
+like:
 
     version 3.0 es
     extension OES_standard_derivatives optional
@@ -94,13 +94,11 @@ The profile file is then passed to the script like this:
 
     $ python flextGLgen.py -D generated -t <template-of-your-choice> profile.txt
 
-This  will  create  the  requested  source  code and  put  it  in  the
-'generated' directory.
+This will create the requested source code and put it in the `generated/`
+directory.
 
-The  best  way  to work  with  flextGL  is  to  integrate it  in  your
-build-system.
-The example project demonstrates this for Make and CMake [here](https://github.com/ginkgo/flextGL-example).
-
+The best way to work with flextGL is to integrate it in your build-system. The
+example project demonstrates this for Make and CMake [here](https://github.com/ginkgo/flextGL-example).
 
 Generated API
 -------------
@@ -176,13 +174,17 @@ The  "compatible"  template uses  a few  code  snippets  from Slavomir
 Kaslev's  gl3w  OpenGL core  profile loader  for  portable  loading of
 procedures and checking minor/major version in OpenGL < 3.0.
 
-Mykhailo Parfeniuk([sopyer](https://github.com/sopyer)) provided most of the `gl.xml` parsing code.
+Mykhailo Parfeniuk([sopyer](https://github.com/sopyer)) provided most of the
+`gl.xml` parsing code.
 
-Vladimír Vondruš([mosra](https://github.com/mosra)) added support for OpenGL ES loader generation.
+Vladimír Vondruš([mosra](https://github.com/mosra)) added support for OpenGL ES
+and Vulkan loader generation.
 
-Leander Beernaert([LeanderBB](https://github.com/LeanderBB)) did various fixes on the compatible template.
+Leander Beernaert([LeanderBB](https://github.com/LeanderBB)) did various fixes
+on the compatible template.
 
-[eternalrain](https://github.com/eternalrain) added support for function white-lists and created the `lite` template.
+[eternalrain](https://github.com/eternalrain) added support for function
+white-lists and created the `lite` template.
 
     (C) Thomas Weber, 2011-2015
         ginko (at) cg (dot) tuwien (dot) ac (dot) at
