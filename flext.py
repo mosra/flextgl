@@ -2,6 +2,12 @@ import time, os
 import urllib.request
 import os.path
 import re
+import sys
+
+# In order to have dicts iterable in insertion order in Python < 3.6
+# (https://stackoverflow.com/a/39537308)
+if not sys.version_info >= (3, 6, 0):
+    from collections import OrderedDict
 
 from glob     import glob
 
@@ -298,7 +304,12 @@ def parse_int_version(version_str):
     return int(match.group(1)) * 10 + int(match.group(2))
 
 def parse_xml_enums(root, api):
-    enums = {}
+    # In order to have dicts iterable in insertion order in Python < 3.6
+    # (https://stackoverflow.com/a/39537308)
+    if sys.version_info >= (3, 6, 0):
+        enums = {}
+    else:
+        enums = OrderedDict()
 
     for enum in root.findall("./enums/enum"):
         if ('api' in enum.attrib and enum.attrib['api'] != api): continue
@@ -605,7 +616,8 @@ def generate_enums(subsets, requiredEnums, enums, version):
     # Vulkan API constants that are required by type definitions but not part
     # of any subset. Iterating over the enums dict instead of iterating over
     # the requiredEnums set in order to retain the XML order and have
-    # deterministic output (iteration of a list preserves insertion order).
+    # deterministic output. In Python 3.6+ dict preserves insertion order for
+    # iterations, in older versions we use collections.OrderedDict.
     for name, definition in enums.items():
         if name in requiredEnums:
             if enumsDecl: enumsDecl += '\n'
