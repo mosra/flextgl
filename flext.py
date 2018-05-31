@@ -352,7 +352,10 @@ def parse_xml_types(root, enum_extensions, promoted_enum_extensions, api):
                 dependencies |= set([t.text for t in m.findall('type')]) - set([name])
                 enum_dependencies |= set([t.text for t in m.findall('enum')])
 
-            definition = '\ntypedef {} {{\n{}\n}} {};'.format(type.attrib['category'], '\n'.join(members), type.attrib['name'])
+            # Due to VkBaseInStructure / VkBaseOutStructure members pointing to
+            # itself, there needs to be `typedef struct Name { ... } Name;`
+            # instead of just `typedef struct Name { ... } Name;`.
+            definition = '\ntypedef {0} {2} {{\n{1}\n}} {2};'.format(type.attrib['category'], '\n'.join(members), type.attrib['name'])
 
         # Enum definition in Vulkan
         elif 'category' in type.attrib and type.attrib['category'] == 'enum':

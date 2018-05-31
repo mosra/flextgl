@@ -327,17 +327,17 @@ typedef void (VKAPI_PTR *PFN_vkFreeFunction)(
     void*                                       pMemory);
 typedef void (VKAPI_PTR *PFN_vkVoidFunction)(void);
 
-typedef struct {
+typedef struct VkBaseOutStructure {
     VkStructureType sType;
     struct VkBaseOutStructure* pNext;
 } VkBaseOutStructure;
 
-typedef struct {
+typedef struct VkBaseInStructure {
     VkStructureType sType;
     const struct VkBaseInStructure* pNext;
 } VkBaseInStructure;
 
-typedef struct {
+typedef struct VkAllocationCallbacks {
     void*           pUserData;
     PFN_vkAllocationFunction   pfnAllocation;
     PFN_vkReallocationFunction pfnReallocation;
@@ -346,7 +346,7 @@ typedef struct {
     PFN_vkInternalFreeNotification pfnInternalFree;
 } VkAllocationCallbacks;
 
-typedef struct {
+typedef struct VkBufferCreateInfo {
     VkStructureType sType;
     const void*            pNext;
     VkBufferCreateFlags    flags;
@@ -357,14 +357,14 @@ typedef struct {
     const uint32_t*        pQueueFamilyIndices;
 } VkBufferCreateInfo;
 
-typedef struct {
+typedef struct VkDrawIndirectCommand {
     uint32_t               vertexCount;
     uint32_t               instanceCount;
     uint32_t               firstVertex;
     uint32_t               firstInstance;
 } VkDrawIndirectCommand;
 
-typedef struct {
+typedef struct VkDrawIndexedIndirectCommand {
     uint32_t               indexCount;
     uint32_t               instanceCount;
     uint32_t               firstIndex;
@@ -372,13 +372,13 @@ typedef struct {
     uint32_t               firstInstance;
 } VkDrawIndexedIndirectCommand;
 
-typedef struct {
+typedef struct VkDispatchIndirectCommand {
     uint32_t               x;
     uint32_t               y;
     uint32_t               z;
 } VkDispatchIndirectCommand;
 
-typedef struct {
+typedef struct VkExternalMemoryBufferCreateInfo {
     VkStructureType sType;
     const void*                      pNext;
     VkExternalMemoryHandleTypeFlags handleTypes;

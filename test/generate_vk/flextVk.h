@@ -529,17 +529,17 @@ typedef void (VKAPI_PTR *PFN_vkFreeFunction)(
     void*                                       pMemory);
 typedef void (VKAPI_PTR *PFN_vkVoidFunction)(void);
 
-typedef struct {
+typedef struct VkBaseOutStructure {
     VkStructureType sType;
     struct VkBaseOutStructure* pNext;
 } VkBaseOutStructure;
 
-typedef struct {
+typedef struct VkBaseInStructure {
     VkStructureType sType;
     const struct VkBaseInStructure* pNext;
 } VkBaseInStructure;
 
-typedef struct {
+typedef struct VkPhysicalDeviceLimits {
     uint32_t               maxImageDimension1D;
     uint32_t               maxImageDimension2D;
     uint32_t               maxImageDimension3D;
@@ -648,7 +648,7 @@ typedef struct {
     VkDeviceSize           nonCoherentAtomSize;
 } VkPhysicalDeviceLimits;
 
-typedef struct {
+typedef struct VkPhysicalDeviceSparseProperties {
     VkBool32               residencyStandard2DBlockShape;
     VkBool32               residencyStandard2DMultisampleBlockShape;
     VkBool32               residencyStandard3DBlockShape;
@@ -656,7 +656,7 @@ typedef struct {
     VkBool32               residencyNonResidentStrict;
 } VkPhysicalDeviceSparseProperties;
 
-typedef struct {
+typedef struct VkPhysicalDeviceProperties {
     uint32_t       apiVersion;
     uint32_t       driverVersion;
     uint32_t       vendorID;
@@ -668,7 +668,7 @@ typedef struct {
     VkPhysicalDeviceSparseProperties sparseProperties;
 } VkPhysicalDeviceProperties;
 
-typedef struct {
+typedef struct VkAllocationCallbacks {
     void*           pUserData;
     PFN_vkAllocationFunction   pfnAllocation;
     PFN_vkReallocationFunction pfnReallocation;
@@ -677,13 +677,13 @@ typedef struct {
     PFN_vkInternalFreeNotification pfnInternalFree;
 } VkAllocationCallbacks;
 
-typedef struct {
+typedef struct VkFormatProperties {
     VkFormatFeatureFlags   linearTilingFeatures;
     VkFormatFeatureFlags   optimalTilingFeatures;
     VkFormatFeatureFlags   bufferFeatures;
 } VkFormatProperties;
 
-typedef struct {
+typedef struct VkBufferCreateInfo {
     VkStructureType sType;
     const void*            pNext;
     VkBufferCreateFlags    flags;
@@ -694,7 +694,7 @@ typedef struct {
     const uint32_t*        pQueueFamilyIndices;
 } VkBufferCreateInfo;
 
-typedef struct {
+typedef struct VkBufferViewCreateInfo {
     VkStructureType sType;
     const void*            pNext;
     VkBufferViewCreateFlags flags;
@@ -704,7 +704,7 @@ typedef struct {
     VkDeviceSize           range;
 } VkBufferViewCreateInfo;
 
-typedef struct {
+typedef struct VkSamplerCreateInfo {
     VkStructureType sType;
     const void*            pNext;
     VkSamplerCreateFlags   flags;
@@ -725,14 +725,14 @@ typedef struct {
     VkBool32               unnormalizedCoordinates;
 } VkSamplerCreateInfo;
 
-typedef struct {
+typedef struct VkDrawIndirectCommand {
     uint32_t               vertexCount;
     uint32_t               instanceCount;
     uint32_t               firstVertex;
     uint32_t               firstInstance;
 } VkDrawIndirectCommand;
 
-typedef struct {
+typedef struct VkDrawIndexedIndirectCommand {
     uint32_t               indexCount;
     uint32_t               instanceCount;
     uint32_t               firstIndex;
@@ -740,19 +740,19 @@ typedef struct {
     uint32_t               firstInstance;
 } VkDrawIndexedIndirectCommand;
 
-typedef struct {
+typedef struct VkDispatchIndirectCommand {
     uint32_t               x;
     uint32_t               y;
     uint32_t               z;
 } VkDispatchIndirectCommand;
 
-typedef struct {
+typedef struct VkDedicatedAllocationBufferCreateInfoNV {
     VkStructureType sType;
     const void*                      pNext;
     VkBool32                         dedicatedAllocation;
 } VkDedicatedAllocationBufferCreateInfoNV;
 
-typedef struct {
+typedef struct VkPhysicalDeviceProperties2 {
     VkStructureType sType;
     void*                            pNext;
     VkPhysicalDeviceProperties       properties;
@@ -760,7 +760,7 @@ typedef struct {
 
 typedef VkPhysicalDeviceProperties2 VkPhysicalDeviceProperties2KHR;
 
-typedef struct {
+typedef struct VkExternalMemoryBufferCreateInfo {
     VkStructureType sType;
     const void*                      pNext;
     VkExternalMemoryHandleTypeFlags handleTypes;
