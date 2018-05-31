@@ -90,7 +90,7 @@ def parse_profile(filename):
     version = None
     extensions = []
     extension_set = set()
-    funcslist = []    
+    funcslist = []
     funcsblacklist = []
 
     function_mode  = False # Are we in function mode?
@@ -98,7 +98,7 @@ def parse_profile(filename):
 
     with open(filename, 'r') as file:
         for line_no,line in enumerate(file, start=1):
-            
+
             # Comment: ignore line
             match = comment_pattern.match(line)
             if match:
@@ -140,16 +140,16 @@ def parse_profile(filename):
                     version = Version(match.group(1), match.group(2), 'es1' if match.group(1) == '1' else 'es2')
                 else:
                     version = Version(match.group(1), match.group(2), match.group(3))
-                    
+
                 continue
 
             # Extension command
             match = extension_pattern.match(line)
-            if match:            
+            if match:
                 if match.group(1) in extension_set:
                     print ('Error (%s:%d): Duplicate extension statement' % (filename, line_no))
                     exit(1)
-                
+
                 extension_set.add(match.group(1))
                 extensions.append((match.group(1), match.group(2) == 'required'))
                 continue
@@ -735,7 +735,7 @@ def generate_source(options, version, enums, functions_by_category, passthru, ex
         os.mkdir(options.outdir)
 
     engine = Engine(loader=FileLoader([options.template_dir]),extensions=[CoreExtension(),CodeExtension()])
-    
+
     generatedFiles = 0
     allFiles       = 0;
 
@@ -754,5 +754,3 @@ def generate_source(options, version, enums, functions_by_category, passthru, ex
             generatedFiles += 1;
 
     print("Generated %d of %d files" % (generatedFiles, allFiles))
-
-    

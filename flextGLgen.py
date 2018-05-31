@@ -25,7 +25,7 @@ def main(options, profile):
     flext.generate_source(options, version, enums, functions, passthru,
                           extensions, types, raw_enums)
 
-    
+
 def parse_args(): # pragma: no cover
     parser = OptionParser(usage='Usage: %prog [options] filename')
     parser.add_option('-d', '--download',
@@ -50,7 +50,7 @@ def parse_args(): # pragma: no cover
         options.template_dir = os.path.join(flext.default_template_root, options.template)
 
     return options, args[0]
-    
+
 
 if __name__ == "__main__": # pragma: no cover
     # Read command line arguments and profile settings

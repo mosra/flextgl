@@ -12,7 +12,7 @@ version 3.3 core
 
 # This is the minimum version necessary to run the
 # application. OpenGL-drivers with a lower version will exit in an
-# error message. 
+# error message.
 
 # Extensions are declared with the 'extension' keyword
 # followed by the name of the extensions:
@@ -61,5 +61,5 @@ begin functions
 
    # Drawing
    DrawElements
-   
+
 end functions

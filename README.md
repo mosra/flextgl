@@ -23,7 +23,7 @@ You will need the following dependencies:
 * **January 30 2015:** Adding function whitelist and `lite` template
 
 * **August 7 2014:** Adding support for generating OpenGL ES loading code
-  
+
 * **July 10 2014:** flextGL now parses `gl.xml` instead of the deprecated `.spec` files.
 
 
@@ -35,17 +35,17 @@ Source tree
 
 * `flext.py`
   > The parsing code
-  
+
 * `templates/`
   > The  sub-directories  in here  contain the different  template sets.
-  > You can  add your own  template by simply  creating a new  folder in 
+  > You can  add your own  template by simply  creating a new  folder in
   > there.
 
 * `profiles/`
-  > Some example profile files to give  you an idea on how to write your 
+  > Some example profile files to give  you an idea on how to write your
   > own. 'profiles/exampleProfile.txt' contains a lot of comments to get
   > you up to speed.
-   
+
 * `spec/` (generated)
   > This directory is  automatically created by the script  to store the
   > downloaded OpenGL .spec files.
@@ -105,7 +105,7 @@ Generated API
 The generated API boils down to a few things:
 
 * `int flextInit()`
-  > Initializes the OpenGL functions after context creation. 
+  > Initializes the OpenGL functions after context creation.
 
 * `FLEXT_MAJOR_VERSION`
   > The OpenGL major version defined in the profile file.
@@ -115,11 +115,11 @@ The generated API boils down to a few things:
 
 * `FLEXT_CORE_PROFILE`
   > Boolean variable.  Is GL_TRUE,  if the profile  file defined  a core
-  > profile. 
+  > profile.
 
 * `FLEXT_<extension-name>`
   > Generated global  variables for checking if a  specific extension is
-  > supported. 
+  > supported.
 
 Take a look at the example program to get an idea on how it's used.
 
@@ -183,4 +183,3 @@ Leander Beernaert([LeanderBB](https://github.com/LeanderBB)) did various fixes o
 
     (C) Thomas Weber, 2011-2015
         ginko (at) cg (dot) tuwien (dot) ac (dot) at
-        
