@@ -345,9 +345,11 @@ def parse_xml_types(root, enum_extensions, promoted_enum_extensions, api):
             for m in type.findall('member'):
                 members += ['    {};'.format(xml_extract_all_text(m, {'comment': ''}))]
 
-                # Add all member <type>s and array sizes (<enum> to
-                # dependencies
-                dependencies |= set([t.text for t in m.findall('type')])
+                # Add all member <type>s and array sizes (<enum>) to
+                # dependencies. Some structures such as VkBaseInStructure or
+                # VkBaseOutStructure have a pointer to itself, which would be
+                # a cycle -- avoid that
+                dependencies |= set([t.text for t in m.findall('type')]) - set([name])
                 enum_dependencies |= set([t.text for t in m.findall('enum')])
 
             definition = '\ntypedef {} {{\n{}\n}} {};'.format(type.attrib['category'], '\n'.join(members), type.attrib['name'])
