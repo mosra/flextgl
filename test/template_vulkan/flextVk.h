@@ -1,7 +1,8 @@
 #ifndef _flextvk_h_
 #define _flextvk_h_
 
-#include <cstdint>
+#include <stdint.h>
+#include <stddef.h>
 
 /* Defensive include guards */
 
@@ -68,8 +69,6 @@ extern "C" {
 #define VK_KHR_SWAPCHAIN_EXTENSION_NAME "VK_KHR_swapchain"
 
 /* Data types */
-
-typedef std::size_t size_t;
 
 #define VK_MAKE_VERSION(major, minor, patch) \
     (((major) << 22) | ((minor) << 12) | (patch))

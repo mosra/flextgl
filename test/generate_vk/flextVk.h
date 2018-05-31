@@ -1,6 +1,7 @@
 /* A minimal template to test all corner cases. Not to be used directly. */
 
-#include <cstdint>
+#include <stdint.h>
+#include <stddef.h>
 
 #define VKAPI_PTR
 
@@ -56,8 +57,6 @@
 #define VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME "VK_KHR_get_physical_device_properties2"
 
 /* Data types */
-
-typedef std::size_t size_t;
 
 #define VK_MAKE_VERSION(major, minor, patch) \
     (((major) << 22) | ((minor) << 12) | (patch))
