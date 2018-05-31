@@ -1,0 +1,19 @@
+# kate: indent-width 2;
+
+matrix:
+  include:
+    - language: python
+      python: 3.4
+    - language: python
+      python: 3.5
+    - language: python
+      python: 3.6
+
+install:
+  - pip install wheezy.template coverage codecov
+
+script:
+  - coverage run -m unittest
+
+after_success:
+  - codecov
