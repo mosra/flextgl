@@ -32,7 +32,11 @@ default_template_root = os.path.join(script_dir, 'templates')
 ################################################################################
 
 gl_spec_url = 'http://www.opengl.org/registry/api/gl.xml'
-vk_spec_url = 'https://raw.githubusercontent.com/KhronosGroup/Vulkan-Docs/master/xml/vk.xml'
+
+# This URL structure is valid from 1.1.72, older had it differently (and the
+# tags were also named differently). I hope this will not be changing much in
+# the future, as that would break loading of older versions.
+vk_spec_url = 'https://raw.githubusercontent.com/KhronosGroup/Vulkan-Docs/{}/xml/vk.xml'
 
 ################################################################################
 # Spec file download
@@ -41,11 +45,11 @@ vk_spec_url = 'https://raw.githubusercontent.com/KhronosGroup/Vulkan-Docs/master
 def file_age(filename):
     return (time.time() - os.path.getmtime(filename)) / 3600.0
 
-def download_spec(spec_url, always_download = False):
+def download_spec(spec_url, save_as, always_download = False):
     if not os.path.exists(spec_dir):
         os.makedirs(spec_dir)
 
-    spec_file = os.path.join(spec_dir, os.path.basename(spec_url))
+    spec_file = os.path.join(spec_dir, save_as)
 
     if always_download or not os.path.exists(spec_file) or file_age(spec_file) > 3*24:
         print ('Downloading %s' % spec_url)
@@ -56,7 +60,7 @@ def download_spec(spec_url, always_download = False):
 ################################################################################
 
 class Version():
-    def __init__(self, major, minor, profile_or_api):
+    def __init__(self, major, minor, release, profile_or_api):
         # 'vulkan', 'gl', 'gles1' or 'gles2'
         if profile_or_api == 'vulkan':
             self.api = profile_or_api
@@ -71,6 +75,8 @@ class Version():
             self.prefix = 'GL_'
         self.major = int(major)
         self.minor = int(minor)
+        # Release is for Vulkan only
+        self.release = int(release) if release is not None else None
         # 'core' or 'compatibility'
         self.profile = profile_or_api if self.api == 'gl' else ''
 
@@ -88,7 +94,7 @@ class Version():
 
 def parse_profile(filename):
     comment_pattern = re.compile('\s*#.*$|\s+$')
-    version_pattern = re.compile('\s*version\s+(\d)\.(\d)\s*(core|compatibility|es|vulkan|)\s*$')
+    version_pattern = re.compile('\s*version\s+(\d)\.(\d)(\.(\d+))?\s*(core|compatibility|es|vulkan|)\s*$')
     extension_pattern = re.compile('\s*extension\s+(\w+)\s+(required|optional)\s*$')
     functions_pattern = re.compile('\s*(begin|end) functions\s+(blacklist)?$')
     function_pattern = re.compile('\s*[A-Z][A-Za-z0-9]+$')
@@ -142,10 +148,10 @@ def parse_profile(filename):
                 if version != None:
                     print ('Error (%s:%d): Duplicate version statement' % (filename,line_no))
                     exit(1)
-                if match.group(3) == 'es':
-                    version = Version(match.group(1), match.group(2), 'es1' if match.group(1) == '1' else 'es2')
+                if match.group(5) == 'es':
+                    version = Version(match.group(1), match.group(2), None, 'es1' if match.group(1) == '1' else 'es2')
                 else:
-                    version = Version(match.group(1), match.group(2), match.group(3))
+                    version = Version(match.group(1), match.group(2), match.group(4), match.group(5))
 
                 continue
 

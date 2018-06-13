@@ -11,12 +11,18 @@ def main(options, profile):
 
     # Download spec file(s) if necessary
     if version.api == 'vulkan':
-        spec_url = flext.vk_spec_url
+        if version.release:
+            version_string = 'v{}.{}.{}'.format(version.major, version.minor, version.release)
+            spec_url = flext.vk_spec_url.format(version_string)
+            spec_file = 'vk.{}.xml'.format(version_string)
+        else:
+            spec_url = flext.vk_spec_url.format('master')
+            spec_file = 'vk.xml'
     else:
         spec_url = flext.gl_spec_url
-    spec_file = os.path.basename(spec_url)
+        spec_file = 'gl.xml'
 
-    flext.download_spec(spec_url, options.download)
+    flext.download_spec(spec_url, spec_file, options.download)
 
     # Parse spec
     passthru, enums, functions, types, raw_enums = flext.parse_xml(spec_file, version, extensions, funcslist, funcsblacklist)

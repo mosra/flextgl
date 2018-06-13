@@ -99,6 +99,11 @@ A Vulkan profile, whitelisting only some particular functions, can look like:
         CreateSwapchainKHR
     end functions
 
+In case of Vulkan it's also possible to generate the output from a particular
+release by saying e.g. `version 1.1.73 vulkan`. That is useful in case you need
+to match exactly the release version required by
+[vulkan.hpp](https://github.com/KhronosGroup/Vulkan-Hpp), for example.
+
 The profile file is then passed to the script like this:
 
     $ python flextGLgen.py -D generated -t <template-of-your-choice> profile.txt
