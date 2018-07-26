@@ -66,7 +66,7 @@
 // Vulkan 1.0 version number
 #define VK_API_VERSION_1_0 VK_MAKE_VERSION(1, 0, 0)// Patch version should always be set to 0
 // Version of this file
-#define VK_HEADER_VERSION 80
+#define VK_HEADER_VERSION 81
 #define VK_DEFINE_HANDLE(object) typedef struct object##_T* object;
 #if !defined(VK_DEFINE_NON_DISPATCHABLE_HANDLE)
 #if defined(__LP64__) || defined(_WIN64) || (defined(__x86_64__) && !defined(__ILP32__) ) || defined(_M_X64) || defined(__ia64) || defined (_M_IA64) || defined(__aarch64__) || defined(__powerpc64__)
@@ -732,24 +732,24 @@ typedef struct VkSamplerCreateInfo {
 } VkSamplerCreateInfo;
 
 typedef struct VkDrawIndirectCommand {
-    uint32_t               vertexCount;
-    uint32_t               instanceCount;
-    uint32_t               firstVertex;
-    uint32_t               firstInstance;
+    uint32_t                       vertexCount;
+    uint32_t                       instanceCount;
+    uint32_t                       firstVertex;
+    uint32_t firstInstance;
 } VkDrawIndirectCommand;
 
 typedef struct VkDrawIndexedIndirectCommand {
-    uint32_t               indexCount;
-    uint32_t               instanceCount;
-    uint32_t               firstIndex;
-    int32_t                vertexOffset;
-    uint32_t               firstInstance;
+    uint32_t                       indexCount;
+    uint32_t                       instanceCount;
+    uint32_t                       firstIndex;
+    int32_t                        vertexOffset;
+    uint32_t firstInstance;
 } VkDrawIndexedIndirectCommand;
 
 typedef struct VkDispatchIndirectCommand {
-    uint32_t               x;
-    uint32_t               y;
-    uint32_t               z;
+    uint32_t x;
+    uint32_t y;
+    uint32_t z;
 } VkDispatchIndirectCommand;
 
 typedef struct VkDedicatedAllocationBufferCreateInfoNV {
