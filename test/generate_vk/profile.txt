@@ -20,6 +20,9 @@ extension KHR_external_memory optional
 # To check command aliases
 extension KHR_get_physical_device_properties2 optional
 
+# To check enum aliases
+extension KHR_surface optional
+
 begin functions
     CmdDraw
     CmdDrawIndexed
@@ -44,6 +47,9 @@ begin functions
     # To verify command aliases and that type aliases that are otherwise not
     # referenced are pulled in as well
     GetPhysicalDeviceProperties2KHR
+
+    # To verify enum aliases
+    GetPhysicalDeviceSurfaceFormatsKHR
 end functions
 
 begin functions blacklist

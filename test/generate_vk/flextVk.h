@@ -56,6 +56,11 @@
 #define VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_SPEC_VERSION 1
 #define VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME "VK_KHR_get_physical_device_properties2"
 
+/* VK_KHR_surface */
+
+#define VK_KHR_SURFACE_SPEC_VERSION 25
+#define VK_KHR_SURFACE_EXTENSION_NAME "VK_KHR_surface"
+
 /* Data types */
 
 #define VK_MAKE_VERSION(major, minor, patch) \
@@ -66,7 +71,7 @@
 // Vulkan 1.0 version number
 #define VK_API_VERSION_1_0 VK_MAKE_VERSION(1, 0, 0)// Patch version should always be set to 0
 // Version of this file
-#define VK_HEADER_VERSION 81
+#define VK_HEADER_VERSION 83
 #define VK_DEFINE_HANDLE(object) typedef struct object##_T* object;
 #if !defined(VK_DEFINE_NON_DISPATCHABLE_HANDLE)
 #if defined(__LP64__) || defined(_WIN64) || (defined(__x86_64__) && !defined(__ILP32__) ) || defined(_M_X64) || defined(__ia64) || defined (_M_IA64) || defined(__aarch64__) || defined(__powerpc64__)
@@ -93,6 +98,7 @@ VK_DEFINE_HANDLE(VkCommandBuffer)
 VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkBuffer)
 VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkBufferView)
 VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkSampler)
+VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkSurfaceKHR)
 
 typedef enum {
     VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK = 0,
@@ -375,7 +381,9 @@ typedef enum {
     VK_ERROR_FRAGMENTED_POOL = -12,
     VK_SUBOPTIMAL_KHR = 1000001003,
     VK_ERROR_OUT_OF_DATE_KHR = -1000001004,
-    VK_ERROR_INVALID_EXTERNAL_HANDLE_KHR = -1000072003
+    VK_ERROR_INVALID_EXTERNAL_HANDLE_KHR = -1000072003,
+    VK_ERROR_SURFACE_LOST_KHR = -1000000000,
+    VK_ERROR_NATIVE_WINDOW_IN_USE_KHR = -1000000001
 } VkResult;
 
 typedef enum {
@@ -493,6 +501,11 @@ typedef enum {
     VK_SAMPLE_COUNT_32_BIT = 1 << 5,
     VK_SAMPLE_COUNT_64_BIT = 1 << 6
 } VkSampleCountFlagBits;
+
+typedef enum {
+    VK_COLOR_SPACE_SRGB_NONLINEAR_KHR = 0,
+    VK_COLORSPACE_SRGB_NONLINEAR_KHR = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR
+} VkColorSpaceKHR;
 
 typedef enum {
     VK_EXTERNAL_MEMORY_HANDLE_TYPE_OPAQUE_FD_BIT = 1 << 0,
@@ -752,6 +765,11 @@ typedef struct VkDispatchIndirectCommand {
     uint32_t z;
 } VkDispatchIndirectCommand;
 
+typedef struct VkSurfaceFormatKHR {
+    VkFormat                         format;
+    VkColorSpaceKHR                  colorSpace;
+} VkSurfaceFormatKHR;
+
 typedef struct VkDedicatedAllocationBufferCreateInfoNV {
     VkStructureType sType;
     const void*                      pNext;
@@ -779,6 +797,7 @@ PFN_vkVoidFunction vkGetInstanceProcAddr(VkInstance, const char*);
 /* Per-instance function pointers */
 struct FlextVkInstance {
     void    (*GetPhysicalDeviceProperties2KHR)(VkPhysicalDevice, VkPhysicalDeviceProperties2*);
+    VkResult    (*GetPhysicalDeviceSurfaceFormatsKHR)(VkPhysicalDevice, VkSurfaceKHR, uint32_t*, VkSurfaceFormatKHR*);
     PFN_vkVoidFunction    (*GetDeviceProcAddr)(VkDevice, const char*);
     void    (*GetPhysicalDeviceFormatProperties)(VkPhysicalDevice, VkFormat, VkFormatProperties*);
     void    (*GetPhysicalDeviceProperties)(VkPhysicalDevice, VkPhysicalDeviceProperties*);
@@ -797,6 +816,7 @@ struct FlextVkDevice {
 
 void flextVkInitInstance(VkInstance instance, FlextVkInstance* data) {
     data->GetPhysicalDeviceProperties2KHR = reinterpret_cast<void(*)(VkPhysicalDevice, VkPhysicalDeviceProperties2*)>(vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceProperties2KHR"));
+    data->GetPhysicalDeviceSurfaceFormatsKHR = reinterpret_cast<VkResult(*)(VkPhysicalDevice, VkSurfaceKHR, uint32_t*, VkSurfaceFormatKHR*)>(vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceSurfaceFormatsKHR"));
     data->GetDeviceProcAddr = reinterpret_cast<PFN_vkVoidFunction(*)(VkDevice, const char*)>(vkGetInstanceProcAddr(instance, "vkGetDeviceProcAddr"));
     data->GetPhysicalDeviceFormatProperties = reinterpret_cast<void(*)(VkPhysicalDevice, VkFormat, VkFormatProperties*)>(vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceFormatProperties"));
     data->GetPhysicalDeviceProperties = reinterpret_cast<void(*)(VkPhysicalDevice, VkPhysicalDeviceProperties*)>(vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceProperties"));

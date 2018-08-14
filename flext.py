@@ -383,6 +383,8 @@ def parse_xml_types(root, enum_extensions, promoted_enum_extensions, api):
                 for enum in enumdef.findall('enum'):
                     if 'bitpos' in enum.attrib:
                         values += ['    {} = 1 << {}'.format(enum.attrib['name'], enum.attrib['bitpos'])]
+                    elif 'alias' in enum.attrib:
+                        values += ['    {} = {}'.format(enum.attrib['name'], enum.attrib['alias'])]
                     else:
                         values += ['    {} = {}'.format(enum.attrib['name'], enum.attrib['value'])]
                 if name in enum_extensions:
