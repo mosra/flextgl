@@ -81,8 +81,11 @@ extern @f.returntype\
 @end
 @end
 
-/* Function pointer initialization */
-void flextVkInit(VkInstance instance);
+/* Global function pointer initialization */
+void flextVkInit();
+
+/* Instance-specific function pointer initialization */
+void flextVkInitInstance(VkInstance instance);
 
 #ifdef __cplusplus
 }

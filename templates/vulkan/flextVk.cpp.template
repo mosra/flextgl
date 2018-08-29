@@ -12,11 +12,26 @@
 @end
 @end
 
-void flextVkInit(VkInstance instance) {
+void flextVkInit() {
+    /* All functions that are present already in 1.0 are loaded statically, but
+       the following are not, so we have to load them at runtime */
     @for category,funcs in functions:
     @if funcs:
     @for f in funcs:
-    @if f.name not in ['GetInstanceProcAddr', 'EnumerateInstanceExtensionProperties', 'EnumerateInstanceLayerProperties', 'CreateInstance']:
+    @if f.name in ['EnumerateInstanceVersion']:
+    flextvk@f.name = reinterpret_cast<@f.returntype\
+(VKAPI_PTR*)(@f.param_type_list_string())>(vkGetInstanceProcAddr(nullptr, "vk@f.name"));
+    @end
+    @end
+    @end
+    @end
+}
+
+void flextVkInitInstance(VkInstance instance) {
+    @for category,funcs in functions:
+    @if funcs:
+    @for f in funcs:
+    @if f.name not in ['GetInstanceProcAddr', 'EnumerateInstanceVersion', 'EnumerateInstanceExtensionProperties', 'EnumerateInstanceLayerProperties', 'CreateInstance']:
     flextvk@f.name = reinterpret_cast<@f.returntype\
 (VKAPI_PTR*)(@f.param_type_list_string())>(vkGetInstanceProcAddr(instance, "vk@f.name"));
     @end

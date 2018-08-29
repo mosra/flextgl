@@ -50,6 +50,9 @@ begin functions
 
     # To verify enum aliases
     GetPhysicalDeviceSurfaceFormatsKHR
+
+    # To verify this function is loaded at a proper place
+    EnumerateInstanceVersion
 end functions
 
 begin functions blacklist

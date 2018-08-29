@@ -5,6 +5,9 @@ extension KHR_swapchain optional
 begin functions
     CreateBuffer
 
+    # To verify vkEnumerateInstanceVersion is loaded at a correct place
+    EnumerateInstanceVersion
+
     # To verify KHR_swapchain is picked up
     AcquireNextImageKHR
 end functions

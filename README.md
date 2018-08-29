@@ -148,11 +148,17 @@ Generated API for Vulkan
 For simplicity, the default template generates all function pointers globally
 and loads them as instance-specific. See
 [this blog post](http://blog.magnum.graphics/hacking/simple-efficient-vulkan-loading-with-flextgl/)
-for other options. Apart from Vulkan APIs, a single function is defined:
+for other options. Apart from Vulkan APIs, two functions are defined:
 
--   `void flextVkInit(VkInstance instance)`
+-   `void flextVkInit()`
 
-    >   Initializes all function pointers using given `instance`
+    >   Initializes all global function pointers (pointers not depending on a
+    >   particular VkInstance). Call this before doing anything else.
+
+-   `void flextVkInitInstance(VkInstance instance)`
+
+    >   Initializes all instance-specific function pointers using given
+    >   `instance` pointer. Call this once you have created a VkInstance.
 
 Note that it's possible to supply your own template with your own API that
 might or might not resemble the above.

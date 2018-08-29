@@ -74,6 +74,11 @@ typedef struct VkDispatchIndirectCommand {
 
 PFN_vkVoidFunction vkGetInstanceProcAddr(VkInstance, const char*);
 
+/* Global function pointers */
+
+/* Global function pointer initialization */
+void flextVkInit();
+
 /* Per-instance function pointers */
 struct FlextVkInstance {
     PFN_vkVoidFunction    (*GetDeviceProcAddr)(VkDevice, const char*);
@@ -87,6 +92,9 @@ struct FlextVkDevice {
     void    (*CmdDraw)(VkCommandBuffer, uint32_t, uint32_t, uint32_t, uint32_t);
     void    (*CmdDrawIndexed)(VkCommandBuffer, uint32_t, uint32_t, uint32_t, int32_t, uint32_t);
 };
+
+void flextVkInit() {
+}
 
 void flextVkInitInstance(VkInstance instance, FlextVkInstance* data) {
     data->GetDeviceProcAddr = reinterpret_cast<PFN_vkVoidFunction(*)(VkDevice, const char*)>(vkGetInstanceProcAddr(instance, "vkGetDeviceProcAddr"));

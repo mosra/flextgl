@@ -25,6 +25,22 @@
 @end
 @end
 
+/* Global function pointers */
+@for cat,funcs in functions:
+@if funcs:
+@for f in funcs:
+@if f.name in ['EnumerateInstanceVersion']:
+extern @f.returntype\
+(VKAPI_PTR *flextvk@f.name)(@f.param_type_list_string());
+#define vk@f.name flextvk@f.name
+@end
+@end
+@end
+@end
+
+/* Global function pointer initialization */
+void flextVkInit();
+
 /* Per-instance function pointers */
 struct FlextVkInstance {
     @for cat,funcs in functions:
@@ -44,13 +60,26 @@ void flextVkInitInstance(VkInstance instance, FlextVkInstance* data);
 struct FlextVkDevice {
     @for cat,funcs in functions:
     @for f in funcs:
-    @if f.params[0][1] not in ['VkInstance', 'VkPhysicalDevice'] and f.name not in ['GetInstanceProcAddr', 'GetDeviceProcAddr', 'EnumerateInstanceExtensionProperties', 'EnumerateInstanceLayerProperties', 'CreateInstance']:
+    @if f.params[0][1] not in ['VkInstance', 'VkPhysicalDevice'] and f.name not in ['GetInstanceProcAddr', 'GetDeviceProcAddr', 'EnumerateInstanceVersion', 'EnumerateInstanceExtensionProperties', 'EnumerateInstanceLayerProperties', 'CreateInstance']:
     @f.returntype\
     (*@f.name)(@f.param_type_list_string());
     @end
     @end
     @end
 };
+
+void flextVkInit() {
+    @for category,funcs in functions:
+    @if funcs:
+    @for f in funcs:
+    @if f.name in ['EnumerateInstanceVersion']:
+    flextvk@f.name = reinterpret_cast<@f.returntype\
+(*)(@f.param_type_list_string())>(vkGetInstanceProcAddr(nullptr, "vk@f.name"));
+    @end
+    @end
+    @end
+    @end
+}
 
 void flextVkInitInstance(VkInstance instance, FlextVkInstance* data) {
     @for category,funcs in functions:
@@ -68,7 +97,7 @@ void flextVkInitInstance(VkInstance instance, FlextVkInstance* data) {
 void flextVkInitDevice(VkDevice device, FlextVkDevice* data, PFN_vkVoidFunction( *getDeviceProcAddr)(VkDevice, const char*)) {
     @for category,funcs in functions:
     @for f in funcs:
-    @if f.params[0][1] not in ['VkInstance', 'VkPhysicalDevice'] and f.name not in ['GetInstanceProcAddr', 'GetDeviceProcAddr', 'EnumerateInstanceExtensionProperties', 'EnumerateInstanceLayerProperties', 'CreateInstance']:
+    @if f.params[0][1] not in ['VkInstance', 'VkPhysicalDevice'] and f.name not in ['GetInstanceProcAddr', 'GetDeviceProcAddr', 'EnumerateInstanceVersion', 'EnumerateInstanceExtensionProperties', 'EnumerateInstanceLayerProperties', 'CreateInstance']:
     data->@f.name = reinterpret_cast<@f.returntype\
 (*)(@f.param_type_list_string())>(getDeviceProcAddr(device, "vk@f.name"));
     @end

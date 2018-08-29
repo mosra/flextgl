@@ -410,8 +410,16 @@ extern VkResult(VKAPI_PTR *flextvkCreateBuffer)(VkDevice, const VkBufferCreateIn
 extern PFN_vkVoidFunction(VKAPI_PTR *flextvkGetDeviceProcAddr)(VkDevice, const char*);
 #define vkGetDeviceProcAddr flextvkGetDeviceProcAddr
 
-/* Function pointer initialization */
-void flextVkInit(VkInstance instance);
+/* VK_VERSION_1_1 */
+
+extern VkResult(VKAPI_PTR *flextvkEnumerateInstanceVersion)(uint32_t*);
+#define vkEnumerateInstanceVersion flextvkEnumerateInstanceVersion
+
+/* Global function pointer initialization */
+void flextVkInit();
+
+/* Instance-specific function pointer initialization */
+void flextVkInitInstance(VkInstance instance);
 
 #ifdef __cplusplus
 }

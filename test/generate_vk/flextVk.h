@@ -995,6 +995,13 @@ typedef struct VkPhysicalDeviceMaintenance3Properties {
 
 PFN_vkVoidFunction vkGetInstanceProcAddr(VkInstance, const char*);
 
+/* Global function pointers */
+extern VkResult(VKAPI_PTR *flextvkEnumerateInstanceVersion)(uint32_t*);
+#define vkEnumerateInstanceVersion flextvkEnumerateInstanceVersion
+
+/* Global function pointer initialization */
+void flextVkInit();
+
 /* Per-instance function pointers */
 struct FlextVkInstance {
     void    (*GetPhysicalDeviceProperties2KHR)(VkPhysicalDevice, VkPhysicalDeviceProperties2*);
@@ -1014,6 +1021,10 @@ struct FlextVkDevice {
     VkResult    (*CreateBufferView)(VkDevice, const VkBufferViewCreateInfo*, const VkAllocationCallbacks*, VkBufferView*);
     VkResult    (*CreateSampler)(VkDevice, const VkSamplerCreateInfo*, const VkAllocationCallbacks*, VkSampler*);
 };
+
+void flextVkInit() {
+    flextvkEnumerateInstanceVersion = reinterpret_cast<VkResult(*)(uint32_t*)>(vkGetInstanceProcAddr(nullptr, "vkEnumerateInstanceVersion"));
+}
 
 void flextVkInitInstance(VkInstance instance, FlextVkInstance* data) {
     data->GetPhysicalDeviceProperties2KHR = reinterpret_cast<void(*)(VkPhysicalDevice, VkPhysicalDeviceProperties2*)>(vkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceProperties2KHR"));
