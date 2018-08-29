@@ -1,4 +1,4 @@
-version 1.0 vulkan
+version 1.1 vulkan
 
 # To check structextends: no new command is added, only extending existing
 # struct VkBufferCreateInfo
