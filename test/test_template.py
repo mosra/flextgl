@@ -1,4 +1,5 @@
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -33,13 +34,18 @@ class BaseTestCase(unittest.TestCase):
         args.template_dir = os.path.join(self.root, 'templates', self.template) if self.template else self.path
         flextGLgen.main(args, os.path.join(self.cwd, profile))
 
-    def actual_expected_contents(self, actual, expected = None):
+    def actual_expected_contents(self, actual, expected=None, replace=None):
         if not expected: expected = actual
 
         with open(os.path.join(self.path, expected)) as f:
             expected_contents = f.read().strip()
         with open(os.path.join(self.path, 'generated', actual)) as f:
             actual_contents = f.read().strip()
+
+        # Not replacing expected_contents, there it should be done already.
+        # That also prevents accidents of replacing something unwanted.
+        if replace: actual_contents = re.sub(replace[0], replace[1], actual_contents)
+
         return actual_contents, expected_contents
 
 class Compatible(BaseTestCase):
@@ -103,4 +109,5 @@ class Vulkan(BaseTestCase):
     def test(self):
         self.run_flextglgen('profile-vk.txt')
         self.assertEqual(*self.actual_expected_contents('flextVk.cpp'))
-        self.assertEqual(*self.actual_expected_contents('flextVk.h'))
+        self.assertEqual(*self.actual_expected_contents('flextVk.h',
+            replace=('#define VK_HEADER_VERSION \d+', '#define VK_HEADER_VERSION 00')))
