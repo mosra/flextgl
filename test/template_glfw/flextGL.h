@@ -30,13 +30,14 @@ extern "C" {
 
 /* -------------------------------- DATA TYPES ------------------------------- */
 
+#include <KHR/khrplatform.h>
 typedef unsigned int GLenum;
 typedef void GLvoid;
+typedef khronos_uint8_t GLubyte;
 typedef int GLint;
-typedef unsigned char GLubyte;
 typedef unsigned int GLuint;
 typedef int GLsizei;
-typedef unsigned short GLhalf;
+typedef khronos_uint16_t GLhalf;
 
 /* ----------------------------------- ENUMS --------------------------------- */
 

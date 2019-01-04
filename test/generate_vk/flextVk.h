@@ -121,6 +121,8 @@ typedef enum {
     VK_BORDER_COLOR_INT_OPAQUE_WHITE = 5
 } VkBorderColor;
 
+typedef int VkSamplerCreateFlagBits;
+
 typedef enum {
     VK_PIPELINE_CACHE_HEADER_VERSION_ONE = 1
 } VkPipelineCacheHeaderVersion;
