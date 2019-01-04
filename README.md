@@ -15,7 +15,7 @@ It is a bit different than other comparable systems:
 -   For Vulkan, it's possible to adapt the templates to generate separate
     instance-specific and device-specific loader for faster runtime
     performance, or switch from globally visible symbols to local ones
-    ([blog post with details](http://blog.magnum.graphics/hacking/simple-efficient-vulkan-loading-with-flextgl/))
+    ([blog post with details](https://blog.magnum.graphics/hacking/simple-efficient-vulkan-loading-with-flextgl/))
 -   Only requested extensions are loaded
 -   Flexible python template system for source generation
 -   Source templates easy to adapt to project requirements
@@ -147,7 +147,7 @@ Generated API for Vulkan
 
 For simplicity, the default template generates all function pointers globally
 and loads them as instance-specific. See
-[this blog post](http://blog.magnum.graphics/hacking/simple-efficient-vulkan-loading-with-flextgl/)
+[this blog post](https://blog.magnum.graphics/hacking/simple-efficient-vulkan-loading-with-flextgl/)
 for other options. Apart from Vulkan APIs, two functions are defined:
 
 -   `void flextVkInit()`
