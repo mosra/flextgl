@@ -20,7 +20,7 @@ extension KHR_external_memory optional
 # To check command aliases
 extension KHR_get_physical_device_properties2 optional
 
-# To check enum aliases
+# To check enum aliases (in VkColorSpaceKHR)
 extension KHR_surface optional
 
 begin functions
@@ -48,7 +48,7 @@ begin functions
     # referenced are pulled in as well
     GetPhysicalDeviceProperties2KHR
 
-    # To verify enum aliases
+    # To verify enum aliases (KHR_surface)
     GetPhysicalDeviceSurfaceFormatsKHR
 
     # To verify this function is loaded at a proper place
