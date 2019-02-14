@@ -253,11 +253,6 @@ def xml_parse_type_name_pair(node):
 def extract_enums(feature, enum_extensions, extension_number = None):
     subsetEnums = []
 
-    # Some enum values are aliases to other values, but the XML doesn't say
-    # which enum the alias belongs to. So we have to maintain a reverse mapping
-    # for everything in enum_extensions.
-    enum_extension_for_name = {}
-
     for enum in feature.findall('enum'):
         enum_name = enum.attrib['name']
 
@@ -295,12 +290,6 @@ def extract_enums(feature, enum_extensions, extension_number = None):
 
             if extends not in enum_extensions: enum_extensions[extends] = []
             enum_extensions[extends] += [(enum_name, value)]
-            enum_extension_for_name[enum_name] = extends
-
-        # The name is an alias to a value in the same enum
-        elif 'alias' in enum.attrib:
-            alias = enum.attrib['alias']
-            enum_extensions[enum_extension_for_name[alias]] += [(enum_name, alias)]
 
         else:
             # Vulkan enums can provide the value directly next to
