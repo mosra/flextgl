@@ -1,0 +1,17 @@
+@require(passthru, functions, enums, options, version, extensions)
+/* A minimal template to test all corner cases. Not to be used directly. */
+
+#include <stdint.h>
+#include <stddef.h>
+
+#define VKAPI_PTR
+
+/* @str(version) */
+
+/* Enums */
+
+@enums
+
+/* Data types */
+
+@passthru
