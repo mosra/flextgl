@@ -96,6 +96,14 @@ class VkExtensionInteractionReorder(BaseTestCase):
         self.run_flextglgen()
         self.assertEqual(*self.actual_expected_contents('flextVk.h'))
 
+class VkPromotedEnum(BaseTestCase):
+    def __init__(self, *args, **kwargs):
+        super().__init__(__file__, 'vk_promoted_enum', *args, **kwargs)
+
+    def test(self):
+        self.run_flextglgen()
+        self.assertEqual(*self.actual_expected_contents('flextVk.h'))
+
 class NotADirectory(BaseTestCase):
     def __init__(self, *args, **kwargs):
         super().__init__(__file__, '', *args, **kwargs)

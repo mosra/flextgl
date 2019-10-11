@@ -1,0 +1,8 @@
+version 1.0 vulkan
+
+# This extension is promoted to 1.1.
+extension KHR_external_memory required
+
+begin functions
+    CreateImage
+end functions
