@@ -10,8 +10,9 @@ extension KHR_swapchain optional
 # To check that enum extension with value are handled correctly
 extension KHR_sampler_mirror_clamp_to_edge optional
 
-# To check that enum extensions with bitpos are handled correctly
-extension IMG_filter_cubic optional
+# To check that enum extensions with bitpos are handled correctly, and also
+# aliases to enum extensions. This should pull in IMG_filter_cubic optional
+extension EXT_filter_cubic optional
 
 # To check type, define and enum aliases and that only aliases for sources that
 # are required get pulled in

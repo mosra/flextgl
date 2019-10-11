@@ -546,11 +546,30 @@ def parse_xml_features(root, version):
 def parse_xml_extensions(root, extensions, enum_extensions, version):
     subsets = []
 
-    for name, _ in extensions:
+    # Extensions might have dependencies, resolve them to avoid dangling
+    # aliases
+    extension_set = set()
+    def resolve_extension_dependencies(name):
+        # Added as a dependency already, don't add it twice
+        if name in extension_set: return []
+        extension_set.add(name)
         extension = root.find("./extensions/extension[@name='{}{}']".format(version.prefix, name))
-        if (extension==None):
-            print ('%s is not an extension' % name)
-            continue
+        if extension is None:
+            print('%s is not an extension' % name)
+            return []
+        required = []
+        if 'requires' in extension.attrib:
+            for i in extension.attrib['requires'].split(','):
+                required += resolve_extension_dependencies(i[len(version.prefix):])
+        # Add the original last so the dependencies it needs are before
+        required += [name]
+        return required
+    extensions_with_dependencies = []
+    for name, _ in extensions:
+        extensions_with_dependencies += resolve_extension_dependencies(name)
+
+    for name in extensions_with_dependencies:
+        extension = root.find("./extensions/extension[@name='{}{}']".format(version.prefix, name))
 
         subsetTypes = []
         subsetEnums = []
