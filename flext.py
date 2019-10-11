@@ -250,7 +250,7 @@ def xml_parse_type_name_pair(node):
     if ptype == None: ptype = node.find('type')
     return (name, type, ptype.text.strip() if ptype != None else None)
 
-def extract_enums(feature, enum_extensions, extension_number = None):
+def extract_enums(feature, enum_extensions, *, extension_number=None, enum_extends_blacklist=set()):
     subsetEnums = []
 
     for enum in feature.findall('enum'):
@@ -258,6 +258,10 @@ def extract_enums(feature, enum_extensions, extension_number = None):
 
         if 'extends' in enum.attrib:
             extends = enum.attrib['extends']
+
+            # See the comment about VK_KHR_sampler_ycbcr_conversion in
+            # parse_xml_extensions()
+            if extends in enum_extends_blacklist: continue
 
             # VkSamplerAddressMode from VK_KHR_sampler_mirror_clamp_to_edge
             # has an explicit value. The sanest way, yet they say "this
@@ -575,15 +579,27 @@ def parse_xml_extensions(root, extensions, enum_extensions, version):
             print('%s is not an extension' % name)
             return []
         required = []
+        # Extensions can require other extensions
         if 'requires' in extension.attrib:
             for i in extension.attrib['requires'].split(','):
                 required += resolve_extension_dependencies(i[len(version.prefix):])
+        # ... and have interactions with other extensions. If that's the case,
+        # add the interacted-with extension isn't already in the set, add it
+        # (and all its dependencies) there so it's early enough
+        for interaction in extension.findall('require[@extension]'):
+            interaction_suffix = interaction.attrib['extension'][len(version.prefix):]
+            if not interaction_suffix in extension_set and interaction_suffix in [e[0] for e in extensions]:
+                required += resolve_extension_dependencies(interaction_suffix)
+
         # Add the original last so the dependencies it needs are before
         required += [name]
         return required
     extensions_with_dependencies = []
     for name, _ in extensions:
         extensions_with_dependencies += resolve_extension_dependencies(name)
+
+    # Ensure there are no accidental duplicates
+    assert len(extensions_with_dependencies) == len(set(extensions_with_dependencies))
 
     for name in extensions_with_dependencies:
         extension = root.find("./extensions/extension[@name='{}{}']".format(version.prefix, name))
@@ -592,6 +608,20 @@ def parse_xml_extensions(root, extensions, enum_extensions, version):
         subsetEnums = []
         subsetCommands = []
 
+        # At least in Vulkan 1.1.124, VK_KHR_sampler_ycbcr_conversion (which is
+        # promoted to 1.1) lists an extension to VkDebugReportObjectTypeEXT
+        # in a general <require> and then again (properly) in
+        # <require extension="VK_EXT_debug_report">. If VK_EXT_debug_report is
+        # not requested, that causes an assert. To circumvent that, add all
+        # type extensions which aren't requested to a blacklist to ignore
+        # later.
+        enum_extends_blacklist = set()
+        for require in extension.findall('./require[@extension]'):
+            # The extended extension is requested, no blaclisting
+            if require.attrib['extension'] in extension_set: continue
+            for enum in require.findall('enum'):
+                enum_extends_blacklist.add(enum.attrib['extends'])
+
         for require in extension.findall('./require'):
             # Given set of names is restricted to some API or profile subset
             # (e.g. KHR_debug has different set of names for 'gl' and 'gles2')
@@ -599,12 +629,17 @@ def parse_xml_extensions(root, extensions, enum_extensions, version):
                 if require.attrib['api'] != version.api: continue
                 if 'profile' in require.attrib and require.attrib['profile'] != version.profile: continue
 
+            # Vulkan extensions can have interactions with other extensions.
+            # Add those only if the other extensions is present as well.
+            if 'extension' in require.attrib and require.attrib['extension'] not in extension_set:
+                continue
+
             subsetTypes += extract_names(require, 'type')
             subsetCommands += extract_names(require, 'command')
 
             # The 'number' attribute is available only in vk.xml, extract_enums()
             # asserts that it's available if needed
-            enums_to_add, enum_extensions = extract_enums(require, enum_extensions, extension.attrib.get('number'))
+            enums_to_add, enum_extensions = extract_enums(require, enum_extensions, extension_number=extension.attrib.get('number'), enum_extends_blacklist=enum_extends_blacklist)
             subsetEnums += enums_to_add
 
         subsets.append(APISubset(name, subsetTypes, subsetEnums, subsetCommands))
