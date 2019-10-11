@@ -37,6 +37,7 @@ gl_spec_url = 'http://www.opengl.org/registry/api/gl.xml'
 # tags were also named differently). I hope this will not be changing much in
 # the future, as that would break loading of older versions.
 vk_spec_url = 'https://raw.githubusercontent.com/KhronosGroup/Vulkan-Docs/{}/xml/vk.xml'
+vk_spec_url10 = 'https://raw.githubusercontent.com/KhronosGroup/Vulkan-Docs/{}-core/src/spec/vk.xml'
 
 ################################################################################
 # Spec file download

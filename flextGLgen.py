@@ -13,7 +13,10 @@ def main(options, profile):
     if version.api == 'vulkan':
         if version.release:
             version_string = 'v{}.{}.{}'.format(version.major, version.minor, version.release)
-            spec_url = flext.vk_spec_url.format(version_string)
+            if version.major == 1 and version.minor == 0:
+                spec_url = flext.vk_spec_url10.format(version_string)
+            else:
+                spec_url = flext.vk_spec_url.format(version_string)
             spec_file = 'vk.{}.xml'.format(version_string)
         else:
             spec_url = flext.vk_spec_url.format('master')
