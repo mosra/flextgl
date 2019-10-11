@@ -28,6 +28,11 @@ You will need the following dependencies:
 
 ### What's new?
 
+-   **October 2019:** Breaking change -- the GL `<KHR/khrplatform.h>` include
+    is now required to be specified by the template instead of being added
+    implicitly from the `gl.xml` definition. This is done in order to allow
+    more flexibility and is consistent with how `vk_platform.h` is handled.
+    See commit bef1e12c98562fa87b698751a75d9da84e11c98d for details.
 -   **May 2018:** Vulkan support, 100% test coverage,
     [@mosra](https://github.com/mosra) took over the maintainership from
     [@ginkgo](https://github.com/ginkgo)
