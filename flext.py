@@ -380,6 +380,8 @@ def parse_xml_types(root, enum_extensions, promoted_enum_extensions, api):
             name = type.attrib['name']
             enumdef = root.find("./enums[@name='{}']".format(name))
             if enumdef: # Some Vulkan enums are empty (bitsets)
+                written_enum_values = set()
+
                 for enum in enumdef.findall('enum'):
                     if 'bitpos' in enum.attrib:
                         values += ['    {} = 1 << {}'.format(enum.attrib['name'], enum.attrib['bitpos'])]
@@ -387,8 +389,9 @@ def parse_xml_types(root, enum_extensions, promoted_enum_extensions, api):
                         values += ['    {} = {}'.format(enum.attrib['name'], enum.attrib['alias'])]
                     else:
                         values += ['    {} = {}'.format(enum.attrib['name'], enum.attrib['value'])]
-                if name in enum_extensions:
+                    written_enum_values.add(enum.attrib['name'])
 
+                if name in enum_extensions:
                     # Extension enum values might be promoted to core in later
                     # versions, create a map with their values to avoid having
                     # aliases to nonexistent values
@@ -400,7 +403,21 @@ def parse_xml_types(root, enum_extensions, promoted_enum_extensions, api):
                     # Value is either a concrete value, an existing alias or
                     # an extracted value from a promoted alias above
                     for extension, value in enum_extensions[name]:
-                        values += ['    {} = {}'.format(extension, extensions[value] if value in extensions else value)]
+                        # If the enum value is a (negative) number, write that
+                        if not value[0].isalpha():
+                            value_to_write = value
+                        # If it's an alias to a promoted extension, write the
+                        # core name
+                        elif value in extensions:
+                            value_to_write = extensions[value]
+                        # Otherwise, if it's an alias and the target wasn't
+                        # written yet, it's a problem
+                        else:
+                            assert value in written_enum_values, "Alias target for %s not found: %s" % (extension, value)
+                            value_to_write = value
+
+                        values += ['    {} = {}'.format(extension, value_to_write)]
+                        written_enum_values.add(extension)
 
                 definition = '\ntypedef enum {{\n{}\n}} {};'.format(',\n'.join(values), name)
 
