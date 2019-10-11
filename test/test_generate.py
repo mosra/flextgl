@@ -88,6 +88,14 @@ class VkDuplicateExtensionInteraction(BaseTestCase):
         self.run_flextglgen()
         self.assertEqual(*self.actual_expected_contents('flextVk.h'))
 
+class VkExtensionInteractionReorder(BaseTestCase):
+    def __init__(self, *args, **kwargs):
+        super().__init__(__file__, 'vk_extension_interaction_reorder', *args, **kwargs)
+
+    def test(self):
+        self.run_flextglgen()
+        self.assertEqual(*self.actual_expected_contents('flextVk.h'))
+
 class NotADirectory(BaseTestCase):
     def __init__(self, *args, **kwargs):
         super().__init__(__file__, '', *args, **kwargs)

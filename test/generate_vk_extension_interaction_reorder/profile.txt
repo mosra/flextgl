@@ -1,0 +1,10 @@
+version 1.1.124 vulkan
+
+# The former has an interaction with the latter. The script should swap their
+# order so the alias target exists early enough.
+extension KHR_descriptor_update_template required
+extension EXT_debug_report required
+
+begin functions
+    DebugReportMessageEXT
+end functions
