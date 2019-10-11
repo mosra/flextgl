@@ -2,6 +2,8 @@
 #ifndef __gl_h_
 #define __gl_h_
 
+#include <KHR/khrplatform.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif

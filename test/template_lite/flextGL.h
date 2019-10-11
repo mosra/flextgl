@@ -4,6 +4,8 @@
 #ifndef __gl_h_
 #define __gl_h_
 
+#include <KHR/khrplatform.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -30,7 +32,6 @@ extern "C" {
 
 /* -------------------------------- DATA TYPES ------------------------------- */
 
-#include <KHR/khrplatform.h>
 typedef unsigned int GLenum;
 typedef void GLvoid;
 typedef khronos_uint8_t GLubyte;
