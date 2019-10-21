@@ -31,18 +31,18 @@ extern "C" {
 #define GLAPI extern
 #endif
 
-/* -------------------------------- DATA TYPES ------------------------------- */
+/* ------------------------------- DATA TYPES ------------------------------ */
 
 @passthru
 
-/* ----------------------------------- ENUMS --------------------------------- */
+/* ---------------------------------- ENUMS -------------------------------- */
 
 @enums
 
-/* --------------------------- FUNCTION PROTOTYPES --------------------------- */
+/* -------------------------- FUNCTION PROTOTYPES -------------------------- */
 
 @for cat,funcs in functions:
-
+@if funcs:
 /* GL_@cat */
 
     @if cat in ['VERSION_1_0', 'VERSION_1_1','VERSION_1_0_DEPRECATED', 'VERSION_1_1_DEPRECATED']:
@@ -64,20 +64,21 @@ GLAPI PFNGL@f.name.upper()_PROC* glpf@f.name;
     @end
 
 @end
-
-/* --------------------------- CATEGORY DEFINES ------------------------------ */
+@end
+/* -------------------------- CATEGORY DEFINES ----------------------------- */
 
 @for cat,funcs in functions:
 #define GL_@cat
 @end
 
-/* ---------------------- Flags for optional extensions ---------------------- */
-
+@if extensions:
+/* --------------------- FLAGS FOR OPTIONAL EXTENSIONS --------------------- */
 
 @for extension,required in extensions:
 extern int FLEXT_@extension;
 @end
 
+@end
 struct GLFWwindow;
 typedef struct GLFWwindow GLFWwindow;
 
@@ -95,4 +96,4 @@ int flextInit(GLFWwindow* window);
 }
 #endif
 
-#endif /* _gl_h_ */
+#endif

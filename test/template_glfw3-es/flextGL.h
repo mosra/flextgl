@@ -30,7 +30,7 @@ extern "C" {
 #define GLAPI extern
 #endif
 
-/* -------------------------------- DATA TYPES ------------------------------- */
+/* ------------------------------- DATA TYPES ------------------------------ */
 
 typedef unsigned int GLenum;
 typedef void GLvoid;
@@ -38,7 +38,7 @@ typedef int GLint;
 typedef unsigned int GLuint;
 typedef int GLsizei;
 
-/* ----------------------------------- ENUMS --------------------------------- */
+/* ---------------------------------- ENUMS -------------------------------- */
 
 /* GL_ES_VERSION_2_0 */
 
@@ -348,14 +348,12 @@ typedef int GLsizei;
 
 #define GL_VERTEX_ARRAY_BINDING_OES 0x85B5
 
-/* --------------------------- FUNCTION PROTOTYPES --------------------------- */
-
+/* -------------------------- FUNCTION PROTOTYPES -------------------------- */
 
 /* GL_ES_VERSION_2_0 */
 
 GLAPI void APIENTRY glDrawElements (GLenum mode, GLsizei count, GLenum type, const void * indices);
 GLAPI void APIENTRY glGetIntegerv (GLenum pname, GLint * data);
-
 
 /* GL_OES_vertex_array_object */
 
@@ -365,13 +363,12 @@ GLAPI PFNGLGENVERTEXARRAYSOES_PROC* glpfGenVertexArraysOES;
 
 #define glGenVertexArraysOES glpfGenVertexArraysOES
 
-
-/* --------------------------- CATEGORY DEFINES ------------------------------ */
+/* -------------------------- CATEGORY DEFINES ----------------------------- */
 
 #define GL_ES_VERSION_2_0
 #define GL_OES_vertex_array_object
 
-/* ---------------------- Flags for optional extensions ---------------------- */
+/* --------------------- FLAGS FOR OPTIONAL EXTENSIONS --------------------- */
 
 extern int FLEXT_OES_vertex_array_object;
 
@@ -387,4 +384,4 @@ int flextInit(GLFWwindow* window);
 }
 #endif
 
-#endif /* _gl_h_ */
+#endif

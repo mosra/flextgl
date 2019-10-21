@@ -30,7 +30,7 @@ extern "C" {
 #define GLAPI extern
 #endif
 
-/* -------------------------------- DATA TYPES ------------------------------- */
+/* ------------------------------- DATA TYPES ------------------------------ */
 
 typedef unsigned int GLenum;
 typedef void GLvoid;
@@ -40,7 +40,7 @@ typedef unsigned int GLuint;
 typedef int GLsizei;
 typedef khronos_uint16_t GLhalf;
 
-/* ----------------------------------- ENUMS --------------------------------- */
+/* ---------------------------------- ENUMS -------------------------------- */
 
 /* GL_VERSION_1_0 */
 
@@ -917,8 +917,7 @@ typedef khronos_uint16_t GLhalf;
 #define GL_TESS_EVALUATION_SHADER 0x8E87
 #define GL_TESS_CONTROL_SHADER 0x8E88
 
-/* --------------------------- FUNCTION PROTOTYPES --------------------------- */
-
+/* -------------------------- FUNCTION PROTOTYPES -------------------------- */
 
 /* GL_ARB_tessellation_shader */
 
@@ -928,52 +927,13 @@ GLAPI PFNGLPATCHPARAMETERI_PROC* glpfPatchParameteri;
 
 #define glPatchParameteri glpfPatchParameteri
 
-
 /* GL_VERSION_1_0 */
 
 GLAPI void APIENTRY glGetIntegerv (GLenum pname, GLint * data);
 
-
 /* GL_VERSION_1_1 */
 
 GLAPI void APIENTRY glDrawElements (GLenum mode, GLsizei count, GLenum type, const void * indices);
-
-
-/* GL_VERSION_1_2 */
-
-
-
-
-
-/* GL_VERSION_1_3 */
-
-
-
-
-
-/* GL_VERSION_1_4 */
-
-
-
-
-
-/* GL_VERSION_1_5 */
-
-
-
-
-
-/* GL_VERSION_2_0 */
-
-
-
-
-
-/* GL_VERSION_2_1 */
-
-
-
-
 
 /* GL_VERSION_3_0 */
 
@@ -983,20 +943,7 @@ GLAPI PFNGLGETSTRINGI_PROC* glpfGetStringi;
 
 #define glGetStringi glpfGetStringi
 
-
-/* GL_VERSION_3_1 */
-
-
-
-
-
-/* GL_VERSION_3_2 */
-
-
-
-
-
-/* --------------------------- CATEGORY DEFINES ------------------------------ */
+/* -------------------------- CATEGORY DEFINES ----------------------------- */
 
 #define GL_ARB_tessellation_shader
 #define GL_VERSION_1_0
@@ -1011,8 +958,7 @@ GLAPI PFNGLGETSTRINGI_PROC* glpfGetStringi;
 #define GL_VERSION_3_1
 #define GL_VERSION_3_2
 
-/* ---------------------- Flags for optional extensions ---------------------- */
-
+/* --------------------- FLAGS FOR OPTIONAL EXTENSIONS --------------------- */
 
 extern int FLEXT_ARB_tessellation_shader;
 
@@ -1029,4 +975,4 @@ int flextInit(GLFWwindow* window);
 }
 #endif
 
-#endif /* _gl_h_ */
+#endif
