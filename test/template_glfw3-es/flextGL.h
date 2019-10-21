@@ -1,8 +1,12 @@
-/* WARNING: This file was automatically generated */
-/* Do not edit. */
-
 #ifndef __gl_h_
 #define __gl_h_
+/*
+    This file was generated using https://github.com/mosra/flextgl:
+
+        path/to/flextGLgen.py -D generated -t somepath profile-es.txt
+
+    Do not edit directly, modify the template or profile and regenerate.
+*/
 
 #include <KHR/khrplatform.h>
 

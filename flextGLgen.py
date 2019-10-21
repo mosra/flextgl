@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 
+import sys
 import os.path
 from optparse import OptionParser
 
 import flext
 
 
-def main(options, profile):
+def main(argsstring, options, profile):
     version,extensions,funcslist,funcsblacklist = flext.parse_profile(profile)
 
     # Download spec file(s) if necessary
@@ -31,8 +32,8 @@ def main(options, profile):
     passthru, enums, functions, types, raw_enums = flext.parse_xml(spec_file, version, extensions, funcslist, funcsblacklist)
 
     # Generate source from templates
-    flext.generate_source(options, version, enums, functions, passthru,
-                          extensions, types, raw_enums)
+    flext.generate_source(argsstring, options, version, enums, functions,
+        passthru, extensions, types, raw_enums)
 
 
 def parse_args(): # pragma: no cover
@@ -63,4 +64,4 @@ def parse_args(): # pragma: no cover
 
 if __name__ == "__main__": # pragma: no cover
     # Read command line arguments and profile settings
-    main(*parse_args())
+    main(' '.join(sys.argv[1:]), *parse_args())

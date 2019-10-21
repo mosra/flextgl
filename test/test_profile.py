@@ -21,7 +21,7 @@ class ParseErrors(unittest.TestCase):
         args.download = False
         args.outdir = os.path.join(self.cwd, 'generated')
         args.template = 'glfw'
-        flextGLgen.main(args, os.path.join(self.cwd, profile))
+        flextGLgen.main('', args, os.path.join(self.cwd, profile))
 
     def test_duplicate_version(self):
         with self.assertRaises(SystemExit):

@@ -1,5 +1,12 @@
 #ifndef _flextvk_h_
 #define _flextvk_h_
+/*
+    This file was generated using https://github.com/mosra/flextgl:
+
+        path/to/flextGLgen.py -D generated -t somepath profile-vk.txt
+
+    Do not edit directly, modify the template or profile and regenerate.
+*/
 
 #include <stdint.h>
 #include <stddef.h>

@@ -1,9 +1,13 @@
-@require(passthru, functions, enums, options, version, extensions)
-/* WARNING: This file was automatically generated */
-/* Do not edit. */
-
+@require(passthru, functions, enums, options, version, extensions, args)
 #ifndef __gl_h_
 #define __gl_h_
+/*
+    This file was generated using https://github.com/mosra/flextgl:
+
+        path/to/flextGLgen.py @args
+
+    Do not edit directly, modify the template or profile and regenerate.
+*/
 
 #include <KHR/khrplatform.h>
 

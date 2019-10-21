@@ -30,7 +30,7 @@ class BaseTestCase(unittest.TestCase):
         args.download = False
         args.outdir = os.path.join(self.path, 'generated')
         args.template_dir = template_dir if template_dir else self.path
-        flextGLgen.main(args, os.path.join(self.path, 'profile.txt'))
+        flextGLgen.main('-D generated -t somepath profile.txt', args, os.path.join(self.path, 'profile.txt'))
 
     def actual_expected_contents(self, actual, expected=None, replace=None):
         if not expected: expected = actual
@@ -115,7 +115,7 @@ class NotADirectory(BaseTestCase):
             args.download = False
             args.outdir = os.path.join(self.path, 'generated')
             args.template_dir = os.path.join(self.cwd, 'nonexistent')
-            flextGLgen.main(args, os.path.join(self.cwd, 'profile.txt'))
+            flextGLgen.main('', args, os.path.join(self.cwd, 'profile.txt'))
 
     def test_out(self):
         with self.assertRaises(SystemExit):
@@ -123,4 +123,4 @@ class NotADirectory(BaseTestCase):
             args.download = False
             args.outdir = os.path.join(self.cwd, 'profile.txt')
             args.template_dir = os.path.join(self.root, 'templates')
-            flextGLgen.main(args, os.path.join(self.cwd, 'profile.txt'))
+            flextGLgen.main('', args, os.path.join(self.cwd, 'profile.txt'))

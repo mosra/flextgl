@@ -804,7 +804,7 @@ def parse_xml(file, version, extensions, funcslist, funcsblacklist):
 # Source generation
 ################################################################################
 
-def generate_source(options, version, enums, functions_by_category, passthru, extensions, types, raw_enums):
+def generate_source(argsstring, options, version, enums, functions_by_category, passthru, extensions, types, raw_enums):
     template_pattern = re.compile("(.*).template")
 
     # Sort by categories and sort the functions inside the categories
@@ -820,7 +820,8 @@ def generate_source(options, version, enums, functions_by_category, passthru, ex
                           'version'   : version,
                           'extensions': extensions,
                           'types': types,
-                          'raw_enums': raw_enums}
+                          'raw_enums': raw_enums,
+                          'args': argsstring}
     if not os.path.isdir(options.template_dir):
         print ('%s is not a directory' % options.template_dir)
         exit(1)

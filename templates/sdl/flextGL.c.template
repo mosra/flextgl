@@ -1,6 +1,11 @@
-@require(passthru, functions, enums, options, version, extensions)
-/* WARNING: This file was automatically generated */
-/* Do not edit. */
+@require(passthru, functions, enums, options, version, extensions, args)
+/*
+    This file was generated using https://github.com/mosra/flextgl:
+
+        path/to/flextGLgen.py @args
+
+    Do not edit directly, modify the template or profile and regenerate.
+*/
 
 #include "flextGL.h"
 #include <SDL.h>

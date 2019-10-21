@@ -32,7 +32,7 @@ class BaseTestCase(unittest.TestCase):
         args.download = False
         args.outdir = os.path.join(self.path, 'generated')
         args.template_dir = os.path.join(self.root, 'templates', self.template) if self.template else self.path
-        flextGLgen.main(args, os.path.join(self.cwd, profile))
+        flextGLgen.main('-D generated -t somepath ' + profile, args, os.path.join(self.cwd, profile))
 
     def actual_expected_contents(self, actual, expected=None, replace=None):
         if not expected: expected = actual

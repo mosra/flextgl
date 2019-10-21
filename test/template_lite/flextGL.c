@@ -1,5 +1,10 @@
-/* WARNING: This file was automatically generated */
-/* Do not edit. */
+/*
+    This file was generated using https://github.com/mosra/flextgl:
+
+        path/to/flextGLgen.py -D generated -t somepath profile.txt
+
+    Do not edit directly, modify the template or profile and regenerate.
+*/
 
 #include "flextGL.h"
 
