@@ -57,15 +57,6 @@ class Compatible(BaseTestCase):
         self.assertEqual(*self.actual_expected_contents('flextGL.c'))
         self.assertEqual(*self.actual_expected_contents('flextGL.h'))
 
-class Glfw(BaseTestCase):
-    def __init__(self, *args, **kwargs):
-        super().__init__(__file__, 'glfw', *args, **kwargs)
-
-    def test(self):
-        self.run_flextglgen('profile.txt')
-        self.assertEqual(*self.actual_expected_contents('flextGL.c'))
-        self.assertEqual(*self.actual_expected_contents('flextGL.h'))
-
 class Glfw3(BaseTestCase):
     def __init__(self, *args, **kwargs):
         super().__init__(__file__, 'glfw3', *args, **kwargs)

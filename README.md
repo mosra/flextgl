@@ -178,21 +178,11 @@ At the moment, there are three template sets available:
     > This loads the extensions using a framework-agnostic method with WGL
     > AGL or GLX. This is probably a sensible default for most people.
 
--   `glfw`
+-   `glfw3`, `glfw3-es`
 
-    > This uses GLFW 2's functions for loading and testing for OpenGL
-    > extensions. It will obviously only work with GLFW, but is well tested and
-    > the generated source code is very easy to understand.
-
--   `glfw3`
-
-    > This works like the `glfw` template, but uses GLFW 3 instead. In this
-    > template, a pointer to the GLFWwindow has to be passed as a parameter of
-    > `flextInit()`.
-
--   `glfw3-es`
-
-    > Used for generating OpenGL ES loading code.
+    > These use GLFW 3 functions for loading and testing for OpenGL extensions
+    > either for desktop OpenGL or OpenGL ES. In these templates, the
+    > `flextInit()` function takes a pointer to `GLFWwindow`.
 
 -   `lite`
 
