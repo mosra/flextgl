@@ -102,7 +102,8 @@ class VkPromotedEnum(BaseTestCase):
 
     def test(self):
         self.run_flextglgen()
-        self.assertEqual(*self.actual_expected_contents('flextVk.h'))
+        self.assertEqual(*self.actual_expected_contents('flextVk.h',
+            replace=('#define VK_HEADER_VERSION \d+', '#define VK_HEADER_VERSION 00')))
 
 class NotADirectory(BaseTestCase):
     def __init__(self, *args, **kwargs):
