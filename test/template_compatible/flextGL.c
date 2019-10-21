@@ -12,7 +12,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#if defined(_WIN32) || defined(WIN32) 
+#if defined(_WIN32) || defined(WIN32)
 #define FLEXT_CALL __stdcall
 #else
 #define FLEXT_CALL
@@ -24,7 +24,7 @@ extern "C" {
 
 /* FLEXT_C_EXTENSION
  * Compiling in strict c leads to errors due to void* to function ptr
- * cast being illegal. Mark as extension so that the compiler will 
+ * cast being illegal. Mark as extension so that the compiler will
  * accept it.
  */
 #if defined(__GNUC__) || defined(__clang__)
@@ -58,7 +58,7 @@ int flextInit(void)
     /* --- Check for minimal version and profile --- */
 
     if (major * 10 + minor < 32) {
-#if !defined(FLEXT_NO_LOGGING)	
+#if !defined(FLEXT_NO_LOGGING)
         fprintf(stderr, "Error: OpenGL version 3.2 not supported.\n");
         fprintf(stderr, "       Your version is %d.%d.\n", major, minor);
         fprintf(stderr, "       Try updating your graphics driver.\n");
@@ -70,7 +70,7 @@ int flextInit(void)
     /* --- Check for extensions --- */
 
     glGetIntegerv(GL_NUM_EXTENSIONS, &num_extensions);
-    
+
     for (i = 0; i < num_extensions; i++) {
         add_extension((const char*)glGetStringi(GL_EXTENSIONS, i));
     }
