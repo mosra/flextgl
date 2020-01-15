@@ -411,9 +411,13 @@ def parse_xml_types(root, enum_extensions, promoted_enum_extensions, api):
                         # If the enum value is a (negative) number, write that
                         if not value[0].isalpha():
                             value_to_write = value
-                        # If it's an alias to a promoted extension, write the
-                        # core name
-                        elif value in extensions:
+                        # If it's an alias to a promoted extension and the
+                        # original value haven't been written yet, write the
+                        # core name. If the original value is already written,
+                        # it's better to show the alias explicitly for
+                        # documentation purposes instead of showing the same
+                        # value twice without any apparent reason
+                        elif value in extensions and not value in written_enum_values:
                             value_to_write = extensions[value]
                         # Otherwise, if it's an alias and the target wasn't
                         # written yet, it's a problem
