@@ -706,7 +706,8 @@ typedef enum {
     VK_VENDOR_ID_VIV = 0x10001,
     VK_VENDOR_ID_VSI = 0x10002,
     VK_VENDOR_ID_KAZAN = 0x10003,
-    VK_VENDOR_ID_CODEPLAY = 0x10004
+    VK_VENDOR_ID_CODEPLAY = 0x10004,
+    VK_VENDOR_ID_MESA = 0x10005
 } VkVendorId;
 typedef void (VKAPI_PTR *PFN_vkInternalAllocationNotification)(
     void*                                       pUserData,
