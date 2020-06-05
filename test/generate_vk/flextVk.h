@@ -16,15 +16,15 @@
 
 /* VK_VERSION_1_0 */
 
-#define VK_LOD_CLAMP_NONE 1000.0f
-#define VK_REMAINING_MIP_LEVELS (~0U)
-#define VK_REMAINING_ARRAY_LAYERS (~0U)
-#define VK_WHOLE_SIZE (~0ULL)
 #define VK_ATTACHMENT_UNUSED (~0U)
-#define VK_TRUE 1
 #define VK_FALSE 0
+#define VK_LOD_CLAMP_NONE 1000.0f
 #define VK_QUEUE_FAMILY_IGNORED (~0U)
+#define VK_REMAINING_ARRAY_LAYERS (~0U)
+#define VK_REMAINING_MIP_LEVELS (~0U)
 #define VK_SUBPASS_EXTERNAL (~0U)
+#define VK_TRUE 1
+#define VK_WHOLE_SIZE (~0ULL)
 
 /* VK_VERSION_1_1 */
 
@@ -82,7 +82,7 @@
 /* Data types */
 
 #define VK_MAKE_VERSION(major, minor, patch) \
-    (((major) << 22) | ((minor) << 12) | (patch))
+    ((((uint32_t)(major)) << 22) | (((uint32_t)(minor)) << 12) | ((uint32_t)(patch)))
 #define VK_VERSION_MAJOR(version) ((uint32_t)(version) >> 22)
 #define VK_VERSION_MINOR(version) (((uint32_t)(version) >> 12) & 0x3ff)
 #define VK_VERSION_PATCH(version) ((uint32_t)(version) & 0xfff)
