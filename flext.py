@@ -425,6 +425,15 @@ def parse_xml_types(root, enum_extensions, promoted_enum_extensions, api):
                             assert value in written_enum_values, "Alias target for %s not found: %s" % (extension, value)
                             value_to_write = value
 
+                        # Since 1.2.140, VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ID_PROPERTIES_KHR
+                        # is listed in all three
+                        # KHR_external_{memory,fence,semaphore}_capabilities
+                        # extensions (which is how it should be I guess), but
+                        # the enum should have it just once. Tested in
+                        # test.test_generate.VkDuplicateEnum.
+                        if extension in written_enum_values:
+                            continue
+
                         values += ['    {} = {}'.format(extension, value_to_write)]
                         written_enum_values.add(extension)
 

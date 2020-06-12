@@ -1,0 +1,15 @@
+# Happening since 1.2.140
+# https://github.com/KhronosGroup/Vulkan-Docs/commit/cc5a1ec67405bab282fb037b065a88e0afcf3483
+version 1.2.140 vulkan
+
+# All threee define an VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ID_PROPERTIES_KHR
+# enum, it should be listed just once
+extension KHR_external_memory_capabilities      optional
+extension KHR_external_semaphore_capabilities   optional
+extension KHR_external_fence_capabilities       optional
+
+begin functions
+    GetPhysicalDeviceProperties2KHR
+end functions
+
+# kate: hl python
