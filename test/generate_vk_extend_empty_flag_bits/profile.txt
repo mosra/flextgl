@@ -1,0 +1,9 @@
+version 1.1.124 vulkan
+
+# VK 1.1 extends previously empty VkDeviceQueueCreateFlags with one value and
+# there was a bug whhere this extension was ignored due to a workaround for
+# empty enums that are forbidden in ISO C++.
+
+begin functions
+    CreateDevice
+end functions
