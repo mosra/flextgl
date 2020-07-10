@@ -384,7 +384,9 @@ def parse_xml_types(root, enum_extensions, promoted_enum_extensions, api):
             values = []
             name = type.attrib['name']
             enumdef = root.find("./enums[@name='{}']".format(name))
-            if enumdef: # Some Vulkan enums are empty (bitsets)
+            # ISO C++ forbids empty unnamed enums, so add the full thing only
+            # if it's nonempty or if there are extensions to it
+            if enumdef or name in enum_extensions:
                 written_enum_values = set()
 
                 for enum in enumdef.findall('enum'):
@@ -439,7 +441,7 @@ def parse_xml_types(root, enum_extensions, promoted_enum_extensions, api):
 
                 definition = '\ntypedef enum {{\n{}\n}} {};'.format(',\n'.join(values), name)
 
-            else: # ISO C++ forbids empty unnamed enum, work around that
+            else:
                 definition = '\ntypedef int {};'.format(name)
 
         # Classic type definition
