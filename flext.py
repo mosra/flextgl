@@ -648,7 +648,8 @@ def parse_xml_extensions(root, extensions, enum_extensions, version):
         # <require extension="VK_EXT_debug_report">. If VK_EXT_debug_report is
         # not requested, that causes an assert. To circumvent that, add all
         # type extensions which aren't requested to a blacklist to ignore
-        # later.
+        # later. See test_generate.VkDuplicateExtensionInteraction for a test
+        # case.
         enum_extends_blacklist = set()
         for require in extension.findall('./require[@extension]'):
             # The extended extension is requested, no blaclisting
