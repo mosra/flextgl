@@ -9,14 +9,38 @@ from types import SimpleNamespace as Empty
 
 import flextGLgen
 
+# https://stackoverflow.com/a/12867228
+_camelcase_to_snakecase = re.compile('((?<=[a-z0-9])[A-Z]|(?!^)[A-Z](?=[a-z]))')
+
+# The test files are automatically detected from derived class name and
+# filesystem location. For a `test_generate.VkRelease` class, it will look
+# for the `generate_vk_release` directory. If the class name is equivalent to
+# the filename (e.g. `test_generate.Generate`), then it will be looking for
+# just `page` instead of `page_page`. If needed, the directory name can be
+# overriden by passing it via dir to __init__().
 class BaseTestCase(unittest.TestCase):
-    def __init__(self, path, dir, *args, **kwargs):
+    def __init__(self, *args, dir=None, **kwargs):
         unittest.TestCase.__init__(self, *args, **kwargs)
 
-        # Ground truth files in the template_{template}/ subdirectory
-        self.cwd = os.path.dirname(os.path.realpath(path))
+        # Get the test filename from the derived class module file. If path is
+        # not supplied, get it from derived class name converted to snake_case
+        path = sys.modules[self.__class__.__module__].__file__
+        if not dir: dir = _camelcase_to_snakecase.sub('_\\1', self.__class__.__name__).lower()
+
+        # Full directory name (for test_something.py the directory is
+        # something_{dir}
+        dir_prefix = os.path.splitext(os.path.basename(path))[0][5:]
+        if dir and dir_prefix != dir:
+            dirname = dir_prefix + '_' + dir
+        else:
+            dirname = dir_prefix
+        # Absolute path to this directory
+        self.path = os.path.join(os.path.dirname(os.path.realpath(path)), dirname)
+        self.cwd = os.path.dirname(self.path)
         self.root = os.path.dirname(self.cwd)
-        self.path = os.path.join(self.cwd, ('generate' + ('_' + dir if dir else '')))
+
+        if not os.path.exists(self.path):
+            raise AssertionError("autodetected path {} doesn't exist".format(self.path))
 
         # Display ALL THE DIFFS
         self.maxDiff = None
@@ -46,9 +70,9 @@ class BaseTestCase(unittest.TestCase):
 
         return actual_contents, expected_contents
 
-class Core(BaseTestCase):
+class Generate(BaseTestCase):
     def __init__(self, *args, **kwargs):
-        super().__init__(__file__, '', *args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def test(self):
         self.run_flextglgen()
@@ -56,7 +80,7 @@ class Core(BaseTestCase):
 
 class Es(BaseTestCase):
     def __init__(self, *args, **kwargs):
-        super().__init__(__file__, 'es', *args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def test(self):
         self.run_flextglgen()
@@ -64,7 +88,7 @@ class Es(BaseTestCase):
 
 class Vk(BaseTestCase):
     def __init__(self, *args, **kwargs):
-        super().__init__(__file__, 'vk', *args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def test(self):
         self.run_flextglgen()
@@ -73,7 +97,7 @@ class Vk(BaseTestCase):
 
 class VkRelease(BaseTestCase):
     def __init__(self, *args, **kwargs):
-        super().__init__(__file__, 'vk_release', *args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def test(self):
         self.run_flextglgen(template_dir=os.path.join(self.cwd, 'generate_vk'))
@@ -82,7 +106,7 @@ class VkRelease(BaseTestCase):
 
 class VkDuplicateExtensionInteraction(BaseTestCase):
     def __init__(self, *args, **kwargs):
-        super().__init__(__file__, 'vk_duplicate_extension_interaction', *args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def test(self):
         self.run_flextglgen()
@@ -90,7 +114,7 @@ class VkDuplicateExtensionInteraction(BaseTestCase):
 
 class VkExtendEmptyFlagBits(BaseTestCase):
     def __init__(self, *args, **kwargs):
-        super().__init__(__file__, 'vk_extend_empty_flag_bits', *args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def test(self):
         self.run_flextglgen()
@@ -98,7 +122,7 @@ class VkExtendEmptyFlagBits(BaseTestCase):
 
 class VkExtensionInteractionReorder(BaseTestCase):
     def __init__(self, *args, **kwargs):
-        super().__init__(__file__, 'vk_extension_interaction_reorder', *args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def test(self):
         self.run_flextglgen()
@@ -106,7 +130,7 @@ class VkExtensionInteractionReorder(BaseTestCase):
 
 class VkPromotedEnum(BaseTestCase):
     def __init__(self, *args, **kwargs):
-        super().__init__(__file__, 'vk_promoted_enum', *args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def test(self):
         self.run_flextglgen()
@@ -115,7 +139,7 @@ class VkPromotedEnum(BaseTestCase):
 
 class VkDuplicateEnum(BaseTestCase):
     def __init__(self, *args, **kwargs):
-        super().__init__(__file__, 'vk_duplicate_enum', *args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def test(self):
         self.run_flextglgen()
@@ -124,7 +148,7 @@ class VkDuplicateEnum(BaseTestCase):
 
 class NotADirectory(BaseTestCase):
     def __init__(self, *args, **kwargs):
-        super().__init__(__file__, '', *args, **kwargs)
+        super().__init__(*args, dir='generate', **kwargs)
 
     def test_template(self):
         with self.assertRaises(SystemExit):
