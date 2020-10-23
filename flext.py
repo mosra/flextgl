@@ -422,10 +422,28 @@ def parse_xml_types(root, enum_extensions, promoted_enum_extensions, api):
                         elif value in extensions and not value in written_enum_values:
                             value_to_write = extensions[value]
                         # Otherwise, if it's an alias and the target wasn't
-                        # written yet, it's a problem
+                        # written yet, it's a problem. There's such a case with
+                        # VK_EXT_filter_cubic enums depending on
+                        # VK_IMG_filter_cubic and the dependency is not
+                        # specified since 1.2.148 anymore. For a lack of better
+                        # short-term solution, we just hardcode the two. See
+                        # test_generate.VkEnumAliasWithoutDependency for a test
+                        # case.
                         else:
-                            assert value in written_enum_values, "Alias target for %s not found: %s" % (extension, value)
-                            value_to_write = value
+                            # TODO: fix properly by having a central place for
+                            #   enum values instead of parsing 'bitpos' a
+                            #   billion times over in several different places
+                            if not value in written_enum_values:
+                                IMG_filter_cubic_values = {
+                                    'VK_FILTER_CUBIC_IMG': '1000015000',
+                                    'VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_CUBIC_BIT_IMG': '1 << 13'
+                                }
+
+                                assert value in IMG_filter_cubic_values, "Alias target for %s not found: %s" % (extension, value)
+                                value_to_write = IMG_filter_cubic_values[value]
+
+                            else:
+                                value_to_write = value
 
                         # Since 1.2.140, VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ID_PROPERTIES_KHR
                         # is listed in all three

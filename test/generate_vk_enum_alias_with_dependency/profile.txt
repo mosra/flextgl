@@ -1,0 +1,17 @@
+version 1.2.147 vulkan
+
+# This has aliases to IMG_filter_cubic, which is listed as a dependency. The
+# resulting file should thus have both the EXT and IMG values. See the
+# generate_vk_enum_alias_without_dependency for a test of a behavior w/o the
+# dependency being listed, which is since 1.2.148.
+#
+# The VkFilter enum is of interest for this test.
+extension EXT_filter_cubic optional
+
+begin functions
+    # Consumes VkFilter that's extended with VK_EXT_image_cubic
+    CreateSampler
+
+    # Consumes VkFormatFeatureFlagBits that's extended with VK_EXT_image_cubic
+    GetPhysicalDeviceFormatProperties
+end functions
