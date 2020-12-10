@@ -1,19 +1,17 @@
-# kate: indent-width 2;
-
 matrix:
   include:
-    - language: python
-      python: 3.5
-      env:
-      - JOBID=py35
-    - language: python
-      python: 3.6
-      env:
-      - JOBID=py36
-    - language: python
-      python: 3.7
-      env:
-      - JOBID=py37
+    #- language: python
+      #python: 3.5
+      #env:
+      #- JOBID=py35
+    #- language: python
+      #python: 3.6
+      #env:
+      #- JOBID=py36
+    #- language: python
+      #python: 3.7
+      #env:
+      #- JOBID=py37
 
 install:
   - pip install wheezy.template coverage codecov

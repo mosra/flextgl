@@ -1,0 +1,56 @@
+version: 2.1
+
+notify:
+  webhooks:
+    # Unfortunately Gitter messages are too verbose (one five-line message per
+    # each job in the build matrix) and thus not wanted
+    #- url: https://webhooks.gitter.im/e/cfbadbd34d28708a57c6
+
+executors:
+  python-3_5:
+    docker:
+    - image: python:3.5.10
+  python-3_6:
+    docker:
+    - image: python:3.6.12
+  python-3_7:
+    docker:
+    - image: python:3.7.9
+
+commands:
+  build:
+    steps:
+    - run:
+        name: Install dependencies
+        command: pip install wheezy.template coverage codecov
+    - checkout
+    - run:
+        name: Run tests
+        command: coverage run -m unittest
+    - run:
+        name: Upload coverage
+        command: codecov
+
+jobs:
+  py35:
+    executor: python-3_5
+    steps:
+    - build
+
+  py36:
+    executor: python-3_6
+    steps:
+    - build
+
+  py37:
+    executor: python-3_7
+    steps:
+    - build
+
+workflows:
+  version: 2
+  build:
+    jobs:
+    - py35
+    - py36
+    - py37

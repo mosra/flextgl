@@ -1,7 +1,7 @@
 flextGL
 =======
 
-[![Build Status](https://travis-ci.com/mosra/flextgl.svg?branch=master)](https://travis-ci.com/mosra/flextgl)
+[![Build Status](https://circleci.com/gh/mosra/flextgl.svg?style=shield)](https://circleci.com/gh/mosra/flextgl)
 [![Coverage Status](https://codecov.io/gh/mosra/flextgl/branch/master/graph/badge.svg)](https://codecov.io/gh/mosra/flextgl)
 
 flextGL is an OpenGL and Vulkan header and loader generator.
