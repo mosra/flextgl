@@ -193,6 +193,13 @@ At the moment, there are three template sets available:
 
     > A basic loader for Vulkan.
 
+*   `vulkan-dynamic`
+
+    > A variant of the `vulkan` template that loads the Vulkan library dynamically.
+    > No static linking to Vulkan is necessary and the signature of `flextVkInit` is changed to `bool flextVkInit()`.
+    > This lets you additionally check for the availability of Vulkan itself
+    > and display an error message or fallback to another API if not available.
+
 Installing Wheezy Template on Windows
 -------------------------------------
 
@@ -221,6 +228,10 @@ Credits
     fixes on the compatible template.
 -   [@eternalrain](https://github.com/eternalrain) added support for function
     white-lists and created the `lite` template.
+-   The Khronos Group Inc. ([https://www.khronos.org/vulkan/](https://www.khronos.org/vulkan/))
+    for Vulkan itself and the dynamic Vulkan library loader code.
+-   Tolga Mizrak ([@to-miz](https://github.com/to-miz)) added the dynamic
+    Vulkan loader template variant.
 
 License
 -------
