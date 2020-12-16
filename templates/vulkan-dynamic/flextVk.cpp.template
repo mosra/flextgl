@@ -112,9 +112,9 @@ bool flextVkInit() {
 (VKAPI_PTR*)(@f.param_type_list_string())>(loader.getProcAddress("vk@f.name"));
     @end
     @if f.name in ['EnumerateInstanceVersion']:
-    if (vkGetInstanceProcAddr) {
+    if (flextvkGetInstanceProcAddr) {
         flextvk@f.name = reinterpret_cast<@f.returntype\
-(VKAPI_PTR*)(@f.param_type_list_string())>(vkGetInstanceProcAddr(nullptr, "vk@f.name"));
+(VKAPI_PTR*)(@f.param_type_list_string())>(flextvkGetInstanceProcAddr(nullptr, "vk@f.name"));
     }
     @end
     @end
@@ -129,7 +129,7 @@ void flextVkInitInstance(VkInstance instance) {
     @for f in funcs:
     @if f.name not in ['GetInstanceProcAddr', 'EnumerateInstanceVersion', 'EnumerateInstanceExtensionProperties', 'EnumerateInstanceLayerProperties', 'CreateInstance']:
     flextvk@f.name = reinterpret_cast<@f.returntype\
-(VKAPI_PTR*)(@f.param_type_list_string())>(vkGetInstanceProcAddr(instance, "vk@f.name"));
+(VKAPI_PTR*)(@f.param_type_list_string())>(flextvkGetInstanceProcAddr(instance, "vk@f.name"));
     @end
     @end
     @end
