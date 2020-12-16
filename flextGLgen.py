@@ -20,7 +20,7 @@ def main(argsstring, options, profile):
                 spec_url = flext.vk_spec_url.format(version_string)
             spec_file = 'vk.{}.xml'.format(version_string)
         else:
-            spec_url = flext.vk_spec_url.format('master')
+            spec_url = flext.vk_spec_url.format('main')
             spec_file = 'vk.xml'
     else:
         spec_url = flext.gl_spec_url
