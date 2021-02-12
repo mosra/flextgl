@@ -91,6 +91,19 @@ like:
     extension OES_standard_derivatives optional
     extension OES_vertex_array_object optional
 
+Because the world is far from ideal, *certain vendors* don't bother upstreaming
+their extensions. To handle that, one can supply additional spec URLs to get
+merged to the main one:
+
+    version 2.0 es
+
+    extraspec https://raw.githubusercontent.com/google/angle/master/scripts/gl_angle_ext.xml
+
+    # This one is from the vanilla gl.xml
+    extension OES_vertex_array_object optional
+    # This one ... thanks for the unnecessary extra pain, Google
+    extension ANGLE_multi_draw optional
+
 A Vulkan profile, whitelisting only some particular functions, can look like:
 
     version 1.1 vulkan

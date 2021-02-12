@@ -96,11 +96,13 @@ class Version():
 def parse_profile(filename):
     comment_pattern = re.compile('\s*#.*$|\s+$')
     version_pattern = re.compile('\s*version\s+(\d)\.(\d)(\.(\d+))?\s*(core|compatibility|es|vulkan|)\s*$')
+    extraspec_pattern = re.compile('\s*extraspec\s+([^\s]+)\s*$')
     extension_pattern = re.compile('\s*extension\s+(\w+)\s+(required|optional)\s*$')
     functions_pattern = re.compile('\s*(begin|end) functions\s+(blacklist)?$')
     function_pattern = re.compile('\s*[A-Z][A-Za-z0-9]+$')
 
     version = None
+    extraspec = []
     extensions = []
     extension_set = set()
     funcslist = []
@@ -156,6 +158,13 @@ def parse_profile(filename):
 
                 continue
 
+            # Extra spec URL command
+            match = extraspec_pattern.match(line)
+            if match:
+                extraspec.append(match.group(1))
+
+                continue
+
             # Extension command
             match = extension_pattern.match(line)
             if match:
@@ -182,7 +191,7 @@ def parse_profile(filename):
         else:
             funcslist += ['GetIntegerv', 'GetStringi']
 
-    return version, extensions, set(funcslist), set(funcsblacklist)
+    return version, extraspec, extensions, set(funcslist), set(funcsblacklist)
 
 
 ################################################################################
@@ -813,10 +822,7 @@ def resolve_type_dependencies(subsets, requiredTypes, types):
 
     return requiredTypes, requiredEnums
 
-def parse_xml(file, version, extensions, funcslist, funcsblacklist):
-    tree = etree.parse(os.path.join(spec_dir, file))
-    root = tree.getroot()
-
+def parse_xml(root, version, extensions, funcslist, funcsblacklist):
     subsets, enum_extensions, promoted_enum_extensions = parse_xml_features(root, version)
     subset_extensions, extension_enum_extensions = parse_xml_extensions(root, extensions, enum_extensions, version)
     subsets += subset_extensions

@@ -1,0 +1,6 @@
+version 2.0 es
+
+extraspec https://raw.githubusercontent.com/google/angle/master/scripts/gl_angle_ext.xml
+
+extension OES_vertex_array_object optional
+extension ANGLE_multi_draw optional
