@@ -334,7 +334,10 @@ def parse_xml_enums(root, api):
     for enum in root.findall("./enums/enum"):
         if ('api' in enum.attrib and enum.attrib['api'] != api): continue
         name  = enum.attrib['name']
-        if 'type' in enum.attrib:
+        # GL type attribute is a literal suffix (which we need), while Vulkan
+        # type attribute (since 1.2.174) is an actual C type, which we don't
+        # need.
+        if 'type' in enum.attrib and api != 'vulkan':
             value = "%s%s" % (enum.attrib['value'], enum.attrib['type'])
         elif 'bitpos' in enum.attrib:
             value = "1 << {}".format(enum.attrib['bitpos'])
