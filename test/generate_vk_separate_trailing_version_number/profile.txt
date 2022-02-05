@@ -1,0 +1,10 @@
+version 1.2.192 vulkan
+
+# In 1.2.192 it adds a new VK_KHR_MAINTENANCE_1_SPEC_VERSION enum aliased to
+# VK_KHR_MAINTENANCE1_SPEC_VERSION
+extension KHR_maintenance1 optional
+
+begin functions
+end functions
+
+# kate: hl python

@@ -305,13 +305,20 @@ def extract_enums(feature, enum_extensions, *, extension_number=None, enum_exten
             if extends not in enum_extensions: enum_extensions[extends] = []
             enum_extensions[extends] += [(enum_name, value)]
 
+        # Vulkan enums can provide the value directly
+        elif 'value' in enum.attrib:
+            subsetEnums += [(enum_name, enum.attrib['value'])]
+
+        # As of Vulkan 1.2.192, enums can be also aliases to other enums. Treat
+        # them the same as enums with values -- the value is simply the aliased
+        # name here.
+        elif 'alias' in enum.attrib:
+            subsetEnums += [(enum_name, enum.attrib['alias'])]
+
+        # Otherwise the enum references some external enum value. This will be
+        # dereferenced in generate_enums() later.
         else:
-            # Vulkan enums can provide the value directly next to
-            # referencing some external enum value
-            if 'value' in enum.attrib:
-                subsetEnums += [(enum_name, enum.attrib['value'])]
-            else:
-                subsetEnums += [(enum_name, None)]
+            subsetEnums += [(enum_name, None)]
 
     return subsetEnums, enum_extensions
 
