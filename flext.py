@@ -798,18 +798,17 @@ def resolve_type_dependencies(subsets, requiredTypes, types):
 
     types_from_subsets = set()
     for subset in subsets:
+        if subset.name == 'VK_KHR_copy_commands2':
+            print(subset.types)
         types_from_subsets |= set(subset.types)
 
-    for type in types:
-        # If given type is a top-level one required by one of the subsets
-        # (i.e., not referenced (indirectly) by any command such as indirect
-        # draw structures), include it as well.
-        if type.name in types_from_subsets and not type.is_dependent:
-            requiredTypes.add(type.name)
 
-        # If given type is required by one of the subsets and is an alias to a
-        # type that's required, include it too.
-        if type.name in types_from_subsets and type.alias in requiredTypes:
+    # If given type is required by one of the subsets and is a top-level one
+    # (i.e., not referenced (indirectly) by any command such as indirect draw
+    # structures), include it as well. This has to be done before the loop
+    # below that resolves dependencies.
+    for type in types:
+        if type.name in types_from_subsets and not type.is_dependent:
             requiredTypes.add(type.name)
 
     # If given type is required, add also all its dependencies to required
@@ -818,6 +817,17 @@ def resolve_type_dependencies(subsets, requiredTypes, types):
         if type.name in requiredTypes:
             requiredTypes |= type.required_types
             requiredEnums |= type.required_enums
+
+    # If given type is required by one of the subsets and is an alias to a type
+    # that's required, include it too. This has to be done after the loop above
+    # that resolves dependencies, otherwise aliases to dependent types would
+    # not be resolved correctly (see test_generate.VkDependentTypeAlias for
+    # details). Furthermore, since it's just an alias, all its dependencies
+    # should be already present, and so we don't need to resolve its
+    # dependencies again.
+    for type in types:
+        if type.name in types_from_subsets and type.alias in requiredTypes:
+            requiredTypes.add(type.name)
 
     # If there are types that extend required types, add them as well. This is
     # done after everything else, so extensions that are not to top-level types
