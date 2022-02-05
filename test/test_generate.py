@@ -175,6 +175,11 @@ class VkSeparateTrailingVersionNumber(BaseTestCase):
         self.run_flextglgen()
         self.assertEqual(*self.actual_expected_contents('flextVk.h'))
 
+class VkDependentTypeAlias(BaseTestCase):
+    def test(self):
+        self.run_flextglgen()
+        self.assertEqual(*self.actual_expected_contents('flextVk.h'))
+
 class NotADirectory(BaseTestCase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, dir='generate', **kwargs)

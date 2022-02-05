@@ -1,0 +1,12 @@
+version 1.3.204 vulkan
+
+# KHR_copy_commands2 are core in Vulkan 1.3, but the KHR aliases should be
+# preserved to not break existing code, including KHR aliases for dependent
+# types like VkBufferCopy2[KHR].
+extension KHR_copy_commands2 optional
+
+begin functions
+    CmdCopyBuffer2KHR
+end functions
+
+# kate: hl python
