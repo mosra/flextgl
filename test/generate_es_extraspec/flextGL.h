@@ -486,6 +486,11 @@ void glVertexAttrib4fv(GLuint, const GLfloat *);
 void glVertexAttribPointer(GLuint, GLint, GLenum, GLboolean, GLsizei, const void *);
 void glViewport(GLint, GLint, GLsizei, GLsizei);
 
+/* GL_MAGNUM_what_webgl_has_but_es_not */
+
+void(*flextglGetBufferSubData)(GLenum, GLintptr, GLsizeiptr, void *) = nullptr;
+#define glGetBufferSubData flextglGetBufferSubData
+
 /* GL_OES_vertex_array_object */
 
 void(*flextglBindVertexArrayOES)(GLuint) = nullptr;
@@ -504,6 +509,9 @@ void flextGLInit() {
     flextglMultiDrawArraysInstancedANGLE = reinterpret_cast<void(*)(GLenum, const GLint *, const GLsizei *, const GLsizei *, GLsizei)>(load("glMultiDrawArraysInstancedANGLE"));
     flextglMultiDrawElementsANGLE = reinterpret_cast<void(*)(GLenum, const GLsizei *, GLenum, const GLvoid *const*, GLsizei)>(load("glMultiDrawElementsANGLE"));
     flextglMultiDrawElementsInstancedANGLE = reinterpret_cast<void(*)(GLenum, const GLsizei *, GLenum, const GLvoid *const*, const GLsizei*, GLsizei)>(load("glMultiDrawElementsInstancedANGLE"));
+
+    /* GL_MAGNUM_what_webgl_has_but_es_not */
+    flextglGetBufferSubData = reinterpret_cast<void(*)(GLenum, GLintptr, GLsizeiptr, void *)>(load("glGetBufferSubData"));
 
     /* GL_OES_vertex_array_object */
     flextglBindVertexArrayOES = reinterpret_cast<void(*)(GLuint)>(load("glBindVertexArrayOES"));

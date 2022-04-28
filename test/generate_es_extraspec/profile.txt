@@ -1,5 +1,5 @@
-# Yes, the glGetBufferSubData() isn't in WebGL 1, but it's just a test here,
-# switching to WebGL 2 would expand the expected output significantly.
+# Yes, the glGetBufferSubData() isn't in WebGL 1, and the entrypoint can't
+# really be accessed through a function pointer but it's just a test here.
 version 2.0 es
 
 extraspec https://raw.githubusercontent.com/google/angle/master/scripts/gl_angle_ext.xml
@@ -7,4 +7,4 @@ extraspec webgl.xml
 
 extension OES_vertex_array_object optional
 extension ANGLE_multi_draw optional
-extension GL_MAGNUM_what_webgl_has_but_es_not optional
+extension MAGNUM_what_webgl_has_but_es_not optional
