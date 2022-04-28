@@ -40,14 +40,19 @@ def main(argsstring, options, profile):
 
     # If there are extra spec files, download them and merge into the main one
     for extraspec in extraspecs:
-        spec_file = os.path.basename(urllib.parse.urlparse(extraspec).path)
-        flext.download_spec(extraspec, spec_file, options.download)
+        # If extraspec exists locally, use directly, otherwise download
+        if os.path.exists(os.path.join(os.path.dirname(profile), extraspec)):
+            spec_file_local = os.path.join(os.path.dirname(profile), extraspec)
+        else:
+            spec_file = os.path.basename(urllib.parse.urlparse(extraspec).path)
+            spec_file_local = os.path.join(flext.spec_dir, spec_file)
+            flext.download_spec(extraspec, spec_file, options.download)
 
         # IF ONLY it would be so easy, implementing a generic way to merge the
         # spec files, eh? NOPE, WE'RE GOOGLE, WE DON'T CARE TO PUBLISH THE
         # EXTENSIONS UPSTREAM AND WE DON'T CARE ABOUT HAVING THE FILE VALID
         # EITHER! CHROME! FTW!! WE OWN THE WORLD, YAKNOW?!?!
-        with open(os.path.join(flext.spec_dir, spec_file), 'r') as f:
+        with open(spec_file_local, 'r') as f:
             data = f.read()
             # 1. gl_angle_ext.xml uses `<ptype>const GLtype *</ptype>` instead
             #    of `const <ptype>GLsizei</ptype> *` so we have to patch it

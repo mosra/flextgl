@@ -93,7 +93,9 @@ like:
 
 Because the world is far from ideal, *certain vendors* don't bother upstreaming
 their extensions. To handle that, one can supply additional spec URLs to get
-merged to the main one:
+merged to the main one. Local files passed to `extraspec` also work, in case
+it's needed to manually add an entrypoint defined nowhere else. If the file
+path is relative, it's resolved relative to the profile file location.
 
     version 2.0 es
 
