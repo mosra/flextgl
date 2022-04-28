@@ -31,7 +31,12 @@ default_template_root = os.path.join(script_dir, 'templates')
 # Name and location for spec file(s)
 ################################################################################
 
-gl_spec_url = 'http://www.opengl.org/registry/api/gl.xml'
+# As of 2022-04-28 or maybe earlier, attempting to fetch from
+# http://www.opengl.org/registry/api/gl.xml results in 403, changing that to
+# the redirected https://www.khronos.org/registry/OpenGL/xml/gl.xml doesn't
+# help either. Are they banning python urrlib?! Fetching from GitHub works, the
+# original URL still worked on 2022-02-05.
+gl_spec_url = 'https://raw.githubusercontent.com/KhronosGroup/OpenGL-Registry/main/xml/gl.xml'
 
 # This URL structure is valid from 1.1.72, older had it differently (and the
 # tags were also named differently). I hope this will not be changing much in
