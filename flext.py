@@ -912,7 +912,7 @@ def generate_source(argsstring, options, version, enums, functions_by_category, 
 
         allFiles += 1
 
-        with open(outfile, 'w') as out:
+        with open(outfile, 'w', encoding='utf-8') as out:
             out.write(template.render(template_namespace))
             print("Successfully generated %s" % outfile)
             generatedFiles += 1;
