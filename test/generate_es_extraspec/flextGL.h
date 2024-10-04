@@ -336,9 +336,9 @@ void(*flextglMultiDrawArraysANGLE)(GLenum, const GLint *, const GLsizei *, GLsiz
 #define glMultiDrawArraysANGLE flextglMultiDrawArraysANGLE
 void(*flextglMultiDrawArraysInstancedANGLE)(GLenum, const GLint *, const GLsizei *, const GLsizei *, GLsizei) = nullptr;
 #define glMultiDrawArraysInstancedANGLE flextglMultiDrawArraysInstancedANGLE
-void(*flextglMultiDrawElementsANGLE)(GLenum, const GLsizei *, GLenum, const GLvoid *const*, GLsizei) = nullptr;
+void(*flextglMultiDrawElementsANGLE)(GLenum, const GLsizei *, GLenum, const void *const*, GLsizei) = nullptr;
 #define glMultiDrawElementsANGLE flextglMultiDrawElementsANGLE
-void(*flextglMultiDrawElementsInstancedANGLE)(GLenum, const GLsizei *, GLenum, const GLvoid *const*, const GLsizei*, GLsizei) = nullptr;
+void(*flextglMultiDrawElementsInstancedANGLE)(GLenum, const GLsizei *, GLenum, const void *const*, const GLsizei*, GLsizei) = nullptr;
 #define glMultiDrawElementsInstancedANGLE flextglMultiDrawElementsInstancedANGLE
 
 /* GL_ES_VERSION_2_0 */
@@ -507,8 +507,8 @@ void flextGLInit() {
     /* GL_ANGLE_multi_draw */
     flextglMultiDrawArraysANGLE = reinterpret_cast<void(*)(GLenum, const GLint *, const GLsizei *, GLsizei)>(load("glMultiDrawArraysANGLE"));
     flextglMultiDrawArraysInstancedANGLE = reinterpret_cast<void(*)(GLenum, const GLint *, const GLsizei *, const GLsizei *, GLsizei)>(load("glMultiDrawArraysInstancedANGLE"));
-    flextglMultiDrawElementsANGLE = reinterpret_cast<void(*)(GLenum, const GLsizei *, GLenum, const GLvoid *const*, GLsizei)>(load("glMultiDrawElementsANGLE"));
-    flextglMultiDrawElementsInstancedANGLE = reinterpret_cast<void(*)(GLenum, const GLsizei *, GLenum, const GLvoid *const*, const GLsizei*, GLsizei)>(load("glMultiDrawElementsInstancedANGLE"));
+    flextglMultiDrawElementsANGLE = reinterpret_cast<void(*)(GLenum, const GLsizei *, GLenum, const void *const*, GLsizei)>(load("glMultiDrawElementsANGLE"));
+    flextglMultiDrawElementsInstancedANGLE = reinterpret_cast<void(*)(GLenum, const GLsizei *, GLenum, const void *const*, const GLsizei*, GLsizei)>(load("glMultiDrawElementsInstancedANGLE"));
 
     /* GL_MAGNUM_what_webgl_has_but_es_not */
     flextglGetBufferSubData = reinterpret_cast<void(*)(GLenum, GLintptr, GLsizeiptr, void *)>(load("glGetBufferSubData"));
