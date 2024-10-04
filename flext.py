@@ -410,7 +410,13 @@ def parse_xml_types(root, enum_extensions, promoted_enum_extensions, api):
             enumdef = root.find("./enums[@name='{}']".format(name))
             # ISO C++ forbids empty unnamed enums, so add the full thing only
             # if it's nonempty or if there are extensions to it
-            if enumdef or name in enum_extensions:
+            # ElementTree deprecated the __bool__ conversion of Element, so I
+            # now have to check that `enums` actually has any children.
+            # Checking against None is not enough as it could be present but be
+            # empty, checking just len() isn't enough as it could be None. I
+            # actually don't understand HOW is the non-deprecated way ANY
+            # better.
+            if enumdef is not None and len(enumdef) or name in enum_extensions:
                 written_enum_values = set()
 
                 for enum in enumdef.findall('enum'):
@@ -498,7 +504,10 @@ def parse_xml_types(root, enum_extensions, promoted_enum_extensions, api):
         # parsing is broken. OTOH, there can be proxy types such as
         # <type requires="X11/Xlib.h" name="Display"/> that don't define
         # anything.
-        assert not type or definition.strip()
+        # ElementTree deprecated the __bool__ conversion of Element, so I now
+        # have to check that `type` actually has any children. Checking
+        # against None is not enough as it could be present but be empty.
+        assert not len(type) or definition.strip()
 
         types.append(Type(type.attrib['api'] if 'api' in type.attrib else None, name, definition, type.attrib.get('category') == 'bitmask', dependencies, enum_dependencies, type.attrib['structextends'].split(',') if 'structextends' in type.attrib else [], alias))
 
