@@ -377,7 +377,15 @@ def parse_xml_types(root, enum_extensions, promoted_enum_extensions, api):
         if 'api' in type.attrib and api not in type.attrib['api'].split(','):
             continue
 
-        name = type.attrib['name'] if 'name'in type.attrib else type.find('./name').text
+        # Function pointers in Vulkan are special, inheriting the madness from
+        # C and then some. Ugh. Used to be written in a way where it's enough
+        # to just concatenate all text (like with GL), but as of 1.4.339 they
+        # contain <proto> and such that has to be explicitly dived into.
+        # Specialized parsing further below.
+        if 'category' in type.attrib and type.attrib['category'] == 'funcpointer' and type.find('./proto') is not None:
+            name = type.find('./proto/name').text
+        else:
+            name = type.attrib['name'] if 'name'in type.attrib else type.find('./name').text
 
         # Type dependencies
         dependencies = set()
@@ -502,6 +510,24 @@ def parse_xml_types(root, enum_extensions, promoted_enum_extensions, api):
 
             else:
                 definition = '\ntypedef int {};'.format(name)
+
+        # Function pointer definition in Vulkan as of 1.4.339, inheriting all
+        # the madness from C and then some. Only if the definition contains
+        # <proto> inside, otherwise it's the old way and xml_extract_all_text()
+        # below is enough.
+        elif 'category' in type.attrib and type.attrib['category'] == 'funcpointer' and type.find('./proto') is not None:
+            return_type = type.find('./proto/type');
+
+            definition = '\ntypedef {}{} (VKAPI_PTR *{})({});'.format(
+                return_type.text, # Return value
+                # Optionally a pointer after (and a lot of spaces), because
+                # everyone still pretends those things aren't part of the type
+                return_type.tail,
+                name,
+                # All arguments. Trying to match the original pre-1.4.339
+                # formatting to catch accidents.
+                ','.join(['\n    ' + ''.join(p.itertext()) for p in type.findall('./param')])
+            )
 
         # Classic type definition
         else:
