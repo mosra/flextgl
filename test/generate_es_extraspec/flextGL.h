@@ -17,6 +17,8 @@ typedef khronos_float_t GLfloat;
 typedef char GLchar;
 typedef khronos_intptr_t GLintptr;
 typedef khronos_ssize_t GLsizeiptr;
+typedef GLsizeiptr (APIENTRY *GLGETBLOBPROCANGLE)(const void *key, GLsizeiptr keySize, void *value, GLsizeiptr valueSize, const void *userParam);
+typedef void (APIENTRY *GLSETBLOBPROCANGLE)(const void *key, GLsizeiptr keySize, const void *value, GLsizeiptr valueSize, const void *userParam);
 
 /* Enums */
 
@@ -330,6 +332,13 @@ typedef khronos_ssize_t GLsizeiptr;
 
 /* Function prototypes */
 
+/* GL_ANGLE_blob_cache */
+
+void(*flextglBlobCacheCallbacksANGLE)(GLSETBLOBPROCANGLE, GLGETBLOBPROCANGLE, const void *) = nullptr;
+#define glBlobCacheCallbacksANGLE flextglBlobCacheCallbacksANGLE
+void(*flextglGetPointervANGLE)(GLenum, void **) = nullptr;
+#define glGetPointervANGLE flextglGetPointervANGLE
+
 /* GL_ANGLE_multi_draw */
 
 void(*flextglMultiDrawArraysANGLE)(GLenum, const GLint *, const GLsizei *, GLsizei) = nullptr;
@@ -503,6 +512,10 @@ GLboolean(*flextglIsVertexArrayOES)(GLuint) = nullptr;
 #define glIsVertexArrayOES flextglIsVertexArrayOES
 
 void flextGLInit() {
+
+    /* GL_ANGLE_blob_cache */
+    flextglBlobCacheCallbacksANGLE = reinterpret_cast<void(*)(GLSETBLOBPROCANGLE, GLGETBLOBPROCANGLE, const void *)>(load("glBlobCacheCallbacksANGLE"));
+    flextglGetPointervANGLE = reinterpret_cast<void(*)(GLenum, void **)>(load("glGetPointervANGLE"));
 
     /* GL_ANGLE_multi_draw */
     flextglMultiDrawArraysANGLE = reinterpret_cast<void(*)(GLenum, const GLint *, const GLsizei *, GLsizei)>(load("glMultiDrawArraysANGLE"));

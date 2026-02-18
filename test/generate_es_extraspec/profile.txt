@@ -8,3 +8,5 @@ extraspec webgl.xml
 extension OES_vertex_array_object optional
 extension ANGLE_multi_draw optional
 extension MAGNUM_what_webgl_has_but_es_not optional
+# Depends on a type from the gl_angle_ext.xml file, verify it's brought over
+extension ANGLE_blob_cache optional
