@@ -344,6 +344,8 @@ def parse_xml_enums(root, api):
         enums = OrderedDict()
 
     for enum in root.findall("./enums/enum"):
+        # Doesn't seem to be used in Vulkan, so no need to handle cases like
+        # `api="vulkan,vulkansc,vulkanbase"` here.
         if ('api' in enum.attrib and enum.attrib['api'] != api): continue
         name  = enum.attrib['name']
         # GL type attribute is a literal suffix (which we need), while Vulkan
@@ -368,7 +370,12 @@ def parse_xml_types(root, enum_extensions, promoted_enum_extensions, api):
     types = []
 
     for type in root.findall("./types/type"):
-        if ('api' in type.attrib and type.attrib['api'] != api): continue
+        # While GL has just `api="gl"` for example, Vulkam now has
+        # `api="vulkan,vulkansc,vulkanbase"` etc., so we can't just match the
+        # whole atttribute value via an XQuery expression above and have to
+        # check if it's in the list instead
+        if 'api' in type.attrib and api not in type.attrib['api'].split(','):
+            continue
 
         name = type.attrib['name'] if 'name'in type.attrib else type.find('./name').text
 
@@ -513,6 +520,9 @@ def parse_xml_types(root, enum_extensions, promoted_enum_extensions, api):
         # against None is not enough as it could be present but be empty.
         assert not len(type) or definition.strip()
 
+        # TODO is the Type api field actually used for anything in Vulkan? If
+        #  so, may need to handle cases like `api="vulkan,vulkansc,vulkanbase"`
+        #  here similarly to elsewhere.
         types.append(Type(type.attrib['api'] if 'api' in type.attrib else None, name, definition, type.attrib.get('category') == 'bitmask', dependencies, enum_dependencies, type.attrib['structextends'].split(',') if 'structextends' in type.attrib else [], alias))
 
     # Go through type list and keep only unique names. Because the
@@ -599,7 +609,14 @@ def parse_xml_features(root, version):
     promoted_enum_extensions = {}
     subsets = []
 
-    for feature in root.findall("./feature[@api='%s'][@name][@number]" % version.api):
+    for feature in root.findall("./feature[@api][@name][@number]"):
+        # While GL has just `api="gl"` for example, Vulkam now has
+        # `api="vulkan,vulkansc,vulkanbase"` etc., so we can't just match the
+        # whole atttribute value via an XQuery expression above and have to
+        # check if it's in the list instead
+        if version.api not in feature.attrib['api'].split(','):
+            continue
+
         # Some Vulkan extension enums get promoted to core in later versions
         # and we can't ignore them because the extension enums would then alias
         # to nonexistent values
@@ -698,6 +715,8 @@ def parse_xml_extensions(root, extensions, enum_extensions, version):
             # Given set of names is restricted to some API or profile subset
             # (e.g. KHR_debug has different set of names for 'gl' and 'gles2')
             if 'api' in require.attrib:
+                # Doesn't seem to be used in Vulkan, so no need to handle cases
+                # like `api="vulkan,vulkansc,vulkanbase"` here.
                 if require.attrib['api'] != version.api: continue
                 if 'profile' in require.attrib and require.attrib['profile'] != version.profile: continue
 
