@@ -635,6 +635,7 @@ def parse_xml_features(root, version):
     promoted_enum_extensions = {}
     subsets = []
 
+    feature_set = set()
     for feature in root.findall("./feature[@api][@name][@number]"):
         # While GL has just `api="gl"` for example, Vulkam now has
         # `api="vulkan,vulkansc,vulkanbase"` etc., so we can't just match the
@@ -652,6 +653,7 @@ def parse_xml_features(root, version):
             continue
 
         featureName = feature.attrib['name']
+        feature_set.add(featureName)
 
         typeList    = []
         enumList    = []
@@ -676,9 +678,9 @@ def parse_xml_features(root, version):
 
         subsets.append(APISubset(featureName[3:], typeList, enumList, commandList))
 
-    return subsets, enum_extensions, promoted_enum_extensions
+    return subsets, enum_extensions, promoted_enum_extensions, feature_set
 
-def parse_xml_extensions(root, extensions, enum_extensions, version):
+def parse_xml_extensions(root, extensions, enum_extensions, feature_set, version):
     subsets = []
 
     # Extensions might have dependencies, resolve them to avoid dangling
@@ -693,12 +695,27 @@ def parse_xml_extensions(root, extensions, enum_extensions, version):
             print('%s is not an extension' % name)
             return []
         required = []
-        # Extensions can require other extensions
+        # Extensions can require other extensions. Used to be a `requires`
+        # attribute...
         if 'requires' in extension.attrib:
             for i in extension.attrib['requires'].split(','):
                 required += resolve_extension_dependencies(i[len(version.prefix):])
+        # As of 1.3.241 it's named `depends` instead, with a complex syntax on
+        # its own. It's in a form of "(ext+(ext,ext)+version),version", where
+        # a `,` means OR and `+` means AND. In the ideal case the dependency
+        # would be just the version we already depend on, however at this point
+        # there's no such thing as a minimal version, so instead we do the next
+        # best thing, which is extracting all extensions from here and marking
+        # them as dependencies.
+        if 'depends' in extension.attrib:
+            for i in re.split(r'[\(\)+,]+', extension.attrib['depends']):
+                # Assuming all versions are something like
+                # VK_COMPUTE_VERSION_X_Y and no extensions contain an uppercase
+                # VERSION string.
+                if '_VERSION_' not in i:
+                    required += resolve_extension_dependencies(i[len(version.prefix):])
         # ... and have interactions with other extensions. If that's the case,
-        # add the interacted-with extension isn't already in the set, add it
+        # and the interacted-with extension isn't already in the set, add it
         # (and all its dependencies) there so it's early enough
         for interaction in extension.findall('require[@extension]'):
             interaction_suffix = interaction.attrib['extension'][len(version.prefix):]
@@ -747,8 +764,13 @@ def parse_xml_extensions(root, extensions, enum_extensions, version):
                 if 'profile' in require.attrib and require.attrib['profile'] != version.profile: continue
 
             # Vulkan extensions can have interactions with other extensions.
-            # Add those only if the other extensions is present as well.
+            # Used to be a `requires` attribute, as of 1.3.241 it's named
+            # `depends` instead and can include also things like VK_VERSION_1_1
+            # and such. Add those only if the other extension / feature is
+            # present as well.
             if 'extension' in require.attrib and require.attrib['extension'] not in extension_set:
+                continue
+            if 'depends' in require.attrib and require.attrib['depends'] not in extension_set|feature_set:
                 continue
 
             subsetTypes += extract_names(require, 'type')
@@ -906,8 +928,8 @@ def resolve_type_dependencies(subsets, requiredTypes, types):
     return requiredTypes, requiredEnums
 
 def parse_xml(root, version, extensions, funcslist, funcsblacklist):
-    subsets, enum_extensions, promoted_enum_extensions = parse_xml_features(root, version)
-    subset_extensions, extension_enum_extensions = parse_xml_extensions(root, extensions, enum_extensions, version)
+    subsets, enum_extensions, promoted_enum_extensions, feature_sets = parse_xml_features(root, version)
+    subset_extensions, extension_enum_extensions = parse_xml_extensions(root, extensions, enum_extensions, feature_sets, version)
     subsets += subset_extensions
     enum_extensions.update(extension_enum_extensions)
 
