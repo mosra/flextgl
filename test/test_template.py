@@ -101,7 +101,7 @@ class Vulkan(BaseTestCase):
         self.run_flextglgen('profile-vk.txt')
         self.assertEqual(*self.actual_expected_contents('flextVk.cpp'))
         self.assertEqual(*self.actual_expected_contents('flextVk.h',
-            replace=('#define VK_HEADER_VERSION \d+', '#define VK_HEADER_VERSION 00')))
+            replace=(r'#define VK_HEADER_VERSION \d+', '#define VK_HEADER_VERSION 00')))
 
 class VulkanDynamic(BaseTestCase):
     def __init__(self, *args, **kwargs):
@@ -111,4 +111,4 @@ class VulkanDynamic(BaseTestCase):
         self.run_flextglgen('profile-vk.txt')
         self.assertEqual(*self.actual_expected_contents('flextVk.cpp'))
         self.assertEqual(*self.actual_expected_contents('flextVk.h',
-            replace=('#define VK_HEADER_VERSION \d+', '#define VK_HEADER_VERSION 00')))
+            replace=(r'#define VK_HEADER_VERSION \d+', '#define VK_HEADER_VERSION 00')))
