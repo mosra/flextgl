@@ -91,11 +91,11 @@ private:
 #endif
 };
 
-VkResult(VKAPI_PTR *flextvkAcquireNextImageKHR)(VkDevice, VkSwapchainKHR, uint64_t, VkSemaphore, VkFence, uint32_t*) = nullptr;
 VkResult(VKAPI_PTR *flextvkCreateBuffer)(VkDevice, const VkBufferCreateInfo*, const VkAllocationCallbacks*, VkBuffer*) = nullptr;
 PFN_vkVoidFunction(VKAPI_PTR *flextvkGetDeviceProcAddr)(VkDevice, const char*) = nullptr;
 PFN_vkVoidFunction(VKAPI_PTR *flextvkGetInstanceProcAddr)(VkInstance, const char*) = nullptr;
 VkResult(VKAPI_PTR *flextvkEnumerateInstanceVersion)(uint32_t*) = nullptr;
+VkResult(VKAPI_PTR *flextvkAcquireNextImageKHR)(VkDevice, VkSwapchainKHR, uint64_t, VkSemaphore, VkFence, uint32_t*) = nullptr;
 
 bool flextVkInit() {
     static flextDynamicLoader loader;
@@ -108,7 +108,7 @@ bool flextVkInit() {
 }
 
 void flextVkInitInstance(VkInstance instance) {
-    flextvkAcquireNextImageKHR = reinterpret_cast<VkResult(VKAPI_PTR*)(VkDevice, VkSwapchainKHR, uint64_t, VkSemaphore, VkFence, uint32_t*)>(flextvkGetInstanceProcAddr(instance, "vkAcquireNextImageKHR"));
     flextvkCreateBuffer = reinterpret_cast<VkResult(VKAPI_PTR*)(VkDevice, const VkBufferCreateInfo*, const VkAllocationCallbacks*, VkBuffer*)>(flextvkGetInstanceProcAddr(instance, "vkCreateBuffer"));
     flextvkGetDeviceProcAddr = reinterpret_cast<PFN_vkVoidFunction(VKAPI_PTR*)(VkDevice, const char*)>(flextvkGetInstanceProcAddr(instance, "vkGetDeviceProcAddr"));
+    flextvkAcquireNextImageKHR = reinterpret_cast<VkResult(VKAPI_PTR*)(VkDevice, VkSwapchainKHR, uint64_t, VkSemaphore, VkFence, uint32_t*)>(flextvkGetInstanceProcAddr(instance, "vkAcquireNextImageKHR"));
 }

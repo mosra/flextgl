@@ -9,21 +9,29 @@
 
 /* Enums */
 
-#define VK_UUID_SIZE 16
 #define VK_LUID_SIZE 8
 #define VK_QUEUE_FAMILY_EXTERNAL (~1U)
 
-/* VK_VERSION_1_0 */
+/* VK_BASE_VERSION_1_0 */
 
-#define VK_ATTACHMENT_UNUSED (~0U)
 #define VK_FALSE 0
 #define VK_LOD_CLAMP_NONE 1000.0F
 #define VK_QUEUE_FAMILY_IGNORED (~0U)
 #define VK_REMAINING_ARRAY_LAYERS (~0U)
 #define VK_REMAINING_MIP_LEVELS (~0U)
-#define VK_SUBPASS_EXTERNAL (~0U)
 #define VK_TRUE 1
 #define VK_WHOLE_SIZE (~0ULL)
+#define VK_MAX_MEMORY_TYPES 32
+#define VK_MAX_PHYSICAL_DEVICE_NAME_SIZE 256
+#define VK_UUID_SIZE 16
+#define VK_MAX_EXTENSION_NAME_SIZE 256
+#define VK_MAX_DESCRIPTION_SIZE 256
+#define VK_MAX_MEMORY_HEAPS 16
+
+/* VK_GRAPHICS_VERSION_1_0 */
+
+#define VK_ATTACHMENT_UNUSED (~0U)
+#define VK_SUBPASS_EXTERNAL (~0U)
 
 /* VK_KHR_get_physical_device_properties2 */
 
@@ -44,30 +52,26 @@
 
 /* Data types */
 
-// DEPRECATED: This define is deprecated. VK_MAKE_API_VERSION should be used instead.
 #define VK_MAKE_VERSION(major, minor, patch) \
-    ((((uint32_t)(major)) << 22) | (((uint32_t)(minor)) << 12) | ((uint32_t)(patch)))
-// DEPRECATED: This define is deprecated. VK_API_VERSION_MAJOR should be used instead.
-#define VK_VERSION_MAJOR(version) ((uint32_t)(version) >> 22)
-// DEPRECATED: This define is deprecated. VK_API_VERSION_MINOR should be used instead.
-#define VK_VERSION_MINOR(version) (((uint32_t)(version) >> 12) & 0x3FFU)
-// DEPRECATED: This define is deprecated. VK_API_VERSION_PATCH should be used instead.
+    ((((uint32_t)(major)) << 22U) | (((uint32_t)(minor)) << 12U) | ((uint32_t)(patch)))
+#define VK_VERSION_MAJOR(version) ((uint32_t)(version) >> 22U)
+#define VK_VERSION_MINOR(version) (((uint32_t)(version) >> 12U) & 0x3FFU)
 #define VK_VERSION_PATCH(version) ((uint32_t)(version) & 0xFFFU)
 #define VK_MAKE_API_VERSION(variant, major, minor, patch) \
-    ((((uint32_t)(variant)) << 29) | (((uint32_t)(major)) << 22) | (((uint32_t)(minor)) << 12) | ((uint32_t)(patch)))
-#define VK_API_VERSION_VARIANT(version) ((uint32_t)(version) >> 29)
-#define VK_API_VERSION_MAJOR(version) (((uint32_t)(version) >> 22) & 0x7FU)
-#define VK_API_VERSION_MINOR(version) (((uint32_t)(version) >> 12) & 0x3FFU)
+    ((((uint32_t)(variant)) << 29U) | (((uint32_t)(major)) << 22U) | (((uint32_t)(minor)) << 12U) | ((uint32_t)(patch)))
+#define VK_API_VERSION_VARIANT(version) ((uint32_t)(version) >> 29U)
+#define VK_API_VERSION_MAJOR(version) (((uint32_t)(version) >> 22U) & 0x7FU)
+#define VK_API_VERSION_MINOR(version) (((uint32_t)(version) >> 12U) & 0x3FFU)
 #define VK_API_VERSION_PATCH(version) ((uint32_t)(version) & 0xFFFU)
 // Vulkan 1.0 version number
 #define VK_API_VERSION_1_0 VK_MAKE_API_VERSION(0, 1, 0, 0)// Patch version should always be set to 0
 // Version of this file
 #define VK_HEADER_VERSION 00
 // Complete version of this file
-#define VK_HEADER_VERSION_COMPLETE VK_MAKE_API_VERSION(0, 1, 3, VK_HEADER_VERSION)
+#define VK_HEADER_VERSION_COMPLETE VK_MAKE_API_VERSION(0, 1, 4, VK_HEADER_VERSION)
 #define VK_DEFINE_HANDLE(object) typedef struct object##_T* object;
 #ifndef VK_USE_64_BIT_PTR_DEFINES
-    #if defined(__LP64__) || defined(_WIN64) || (defined(__x86_64__) && !defined(__ILP32__) ) || defined(_M_X64) || defined(__ia64) || defined (_M_IA64) || defined(__aarch64__) || defined(__powerpc64__)
+    #if defined(__LP64__) || defined(_WIN64) || (defined(__x86_64__) && !defined(__ILP32__) ) || defined(_M_X64) || defined(__ia64) || defined (_M_IA64) || defined(__aarch64__) || defined(__powerpc64__) || (defined(__riscv) && __riscv_xlen == 64)
         #define VK_USE_64_BIT_PTR_DEFINES 1
     #else
         #define VK_USE_64_BIT_PTR_DEFINES 0
@@ -101,10 +105,6 @@ typedef VkFlags VkExternalMemoryHandleTypeFlags;
 VK_DEFINE_HANDLE(VkInstance)
 VK_DEFINE_HANDLE(VkDevice)
 VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkImage)
-
-typedef enum {
-    VK_PIPELINE_CACHE_HEADER_VERSION_ONE = 1
-} VkPipelineCacheHeaderVersion;
 
 typedef enum {
     VK_FORMAT_UNDEFINED = 0,
@@ -361,6 +361,7 @@ typedef enum {
     VK_ERROR_FORMAT_NOT_SUPPORTED = -11,
     VK_ERROR_FRAGMENTED_POOL = -12,
     VK_ERROR_UNKNOWN = -13,
+    VK_ERROR_VALIDATION_FAILED = -1000011001,
     VK_ERROR_INVALID_EXTERNAL_HANDLE_KHR = -1000072003
 } VkResult;
 
@@ -473,43 +474,46 @@ typedef enum {
 } VkExternalMemoryHandleTypeFlagBits;
 
 typedef enum {
+    VK_VENDOR_ID_KHRONOS = 0x10000,
     VK_VENDOR_ID_VIV = 0x10001,
     VK_VENDOR_ID_VSI = 0x10002,
     VK_VENDOR_ID_KAZAN = 0x10003,
     VK_VENDOR_ID_CODEPLAY = 0x10004,
     VK_VENDOR_ID_MESA = 0x10005,
-    VK_VENDOR_ID_POCL = 0x10006
+    VK_VENDOR_ID_POCL = 0x10006,
+    VK_VENDOR_ID_MOBILEYE = 0x10007
 } VkVendorId;
-typedef void (VKAPI_PTR *PFN_vkInternalAllocationNotification)(
-    void*                                       pUserData,
-    size_t                                      size,
-    VkInternalAllocationType                    allocationType,
-    VkSystemAllocationScope                     allocationScope);
-typedef void (VKAPI_PTR *PFN_vkInternalFreeNotification)(
-    void*                                       pUserData,
-    size_t                                      size,
-    VkInternalAllocationType                    allocationType,
-    VkSystemAllocationScope                     allocationScope);
-typedef void* (VKAPI_PTR *PFN_vkReallocationFunction)(
-    void*                                       pUserData,
-    void*                                       pOriginal,
-    size_t                                      size,
-    size_t                                      alignment,
-    VkSystemAllocationScope                     allocationScope);
-typedef void* (VKAPI_PTR *PFN_vkAllocationFunction)(
-    void*                                       pUserData,
-    size_t                                      size,
-    size_t                                      alignment,
-    VkSystemAllocationScope                     allocationScope);
-typedef void (VKAPI_PTR *PFN_vkFreeFunction)(
-    void*                                       pUserData,
-    void*                                       pMemory);
-typedef void (VKAPI_PTR *PFN_vkVoidFunction)(void);
 
-typedef struct VkBaseOutStructure {
-    VkStructureType sType;
-    struct VkBaseOutStructure* pNext;
-} VkBaseOutStructure;
+typedef void  (VKAPI_PTR *PFN_vkInternalAllocationNotification)(
+    void*                       pUserData,
+    size_t                      size,
+    VkInternalAllocationType    allocationType,
+    VkSystemAllocationScope     allocationScope);
+
+typedef void  (VKAPI_PTR *PFN_vkInternalFreeNotification)(
+    void*                       pUserData,
+    size_t                      size,
+    VkInternalAllocationType    allocationType,
+    VkSystemAllocationScope     allocationScope);
+
+typedef void*  (VKAPI_PTR *PFN_vkReallocationFunction)(
+    void*                       pUserData,
+    void*                       pOriginal,
+    size_t                      size,
+    size_t                      alignment,
+    VkSystemAllocationScope     allocationScope);
+
+typedef void*  (VKAPI_PTR *PFN_vkAllocationFunction)(
+    void*                       pUserData,
+    size_t                      size,
+    size_t                      alignment,
+    VkSystemAllocationScope     allocationScope);
+
+typedef void  (VKAPI_PTR *PFN_vkFreeFunction)(
+    void*                       pUserData,
+    void*                       pMemory);
+
+typedef void  (VKAPI_PTR *PFN_vkVoidFunction)();
 
 typedef struct VkBaseInStructure {
     VkStructureType sType;
@@ -548,14 +552,6 @@ typedef struct VkImageCreateInfo {
     const uint32_t*        pQueueFamilyIndices;
     VkImageLayout          initialLayout;
 } VkImageCreateInfo;
-
-typedef struct VkPipelineCacheHeaderVersionOne {
-    uint32_t               headerSize;
-    VkPipelineCacheHeaderVersion headerVersion;
-    uint32_t               vendorID;
-    uint32_t               deviceID;
-    uint8_t                pipelineCacheUUID[VK_UUID_SIZE];
-} VkPipelineCacheHeaderVersionOne;
 
 typedef struct VkDrawIndirectCommand {
     uint32_t                       vertexCount;
