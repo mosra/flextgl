@@ -154,6 +154,15 @@ class VkDuplicateEnum(BaseTestCase):
         self.assertEqual(*self.actual_expected_contents('flextVk.h',
             replace=(r'#define VK_HEADER_VERSION \d+', '#define VK_HEADER_VERSION 00')))
 
+class VkEnum64(BaseTestCase):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def test(self):
+        self.run_flextglgen()
+        self.assertEqual(*self.actual_expected_contents('flextVk.h',
+            replace=(r'#define VK_HEADER_VERSION \d+', '#define VK_HEADER_VERSION 00')))
+
 class VkEnumAliasWithDependency(BaseTestCase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

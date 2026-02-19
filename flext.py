@@ -260,7 +260,7 @@ def xml_parse_type_name_pair(node):
     if ptype == None: ptype = node.find('type')
     return (name, type, ptype.text.strip() if ptype != None else None)
 
-def extract_enums(feature, enum_extensions, *, extension_number=None, enum_extends_blacklist=set()):
+def extract_enums(root, feature, enum_extensions, *, extension_number=None, enum_extends_blacklist=set()):
     subsetEnums = []
 
     for enum in feature.findall('enum'):
@@ -281,7 +281,15 @@ def extract_enums(feature, enum_extensions, *, extension_number=None, enum_exten
 
             # Bit position
             elif 'bitpos' in enum.attrib:
-                value = '1 << {}'.format(enum.attrib['bitpos'])
+                # Certain Vulkan enums are 64-bit, those then need proper
+                # 64-bit literals
+                enumdef = root.find("./enums[@name='{}']".format(extends))
+                if enumdef.attrib.get('bitwidth') == '64':
+                    suffix = 'ull'
+                else:
+                    suffix = ''
+
+                value = '1{} << {}'.format(suffix, enum.attrib['bitpos'])
 
             # Alias
             elif 'alias' in enum.attrib:
@@ -343,6 +351,9 @@ def parse_xml_enums(root, api):
         # need.
         if 'type' in enum.attrib and api != 'vulkan':
             value = "%s%s" % (enum.attrib['value'], enum.attrib['type'])
+        # Note that this case doesn't need special handling for Vulkan 64-bit
+        # enums, as the values parsed here are never used. The other cases
+        # with << have appropriate handling.
         elif 'bitpos' in enum.attrib:
             value = "1 << {}".format(enum.attrib['bitpos'])
         # GL defines both value and alias, prefer values because the original
@@ -424,9 +435,16 @@ def parse_xml_types(root, enum_extensions, promoted_enum_extensions, api):
             if enumdef is not None and len(enumdef) or name in enum_extensions:
                 written_enum_values = set()
 
+                # Certain Vulkan enums are 64-bit, those need proper 64-bit
+                # literals
+                if enumdef.attrib.get('bitwidth') == '64':
+                    suffix = 'ull'
+                else:
+                    suffix = ''
+
                 for enum in enumdef.findall('enum'):
                     if 'bitpos' in enum.attrib:
-                        values += ['    {} = 1 << {}'.format(enum.attrib['name'], enum.attrib['bitpos'])]
+                        values += ['    {} = 1{} << {}'.format(enum.attrib['name'], suffix, enum.attrib['bitpos'])]
                     elif 'alias' in enum.attrib:
                         values += ['    {} = {}'.format(enum.attrib['name'], enum.attrib['alias'])]
                     else:
@@ -518,6 +536,13 @@ def parse_xml_types(root, enum_extensions, promoted_enum_extensions, api):
                 # formatting to catch accidents.
                 ','.join(['\n    ' + ''.join(p.itertext()) for p in type.findall('./param')])
             )
+
+        # Bitmask types that have the actual enum type in `bitvalues` rather
+        # than `requires`, which was handled above, add the type to
+        # dependencies.
+        elif 'category' in type.attrib and type.attrib['category'] == 'bitmask' and 'bitvalues' in type.attrib:
+            definition = xml_extract_all_text(type, {})
+            dependencies.add(type.attrib['bitvalues'])
 
         # Classic type definition
         else:
@@ -639,7 +664,7 @@ def parse_xml_features(root, version):
         # to nonexistent values
         if (parse_int_version(feature.attrib['number'])>version.int_value()):
             for actionSet in list(feature):
-                _, promoted_enum_extensions = extract_enums(actionSet, promoted_enum_extensions)
+                _, promoted_enum_extensions = extract_enums(root, actionSet, promoted_enum_extensions)
             continue
 
         featureName = feature.attrib['name']
@@ -657,7 +682,7 @@ def parse_xml_features(root, version):
                 typeList.extend(extract_names(actionSet, './type'))
                 commandList.extend(extract_names(actionSet, './command'))
 
-                enums_to_add, enum_extensions = extract_enums(actionSet, enum_extensions)
+                enums_to_add, enum_extensions = extract_enums(root, actionSet, enum_extensions)
                 enumList += enums_to_add
 
             if actionSet.tag == 'remove':
@@ -769,7 +794,7 @@ def parse_xml_extensions(root, extensions, enum_extensions, feature_set, version
 
             # The 'number' attribute is available only in vk.xml, extract_enums()
             # asserts that it's available if needed
-            enums_to_add, enum_extensions = extract_enums(require, enum_extensions, extension_number=extension.attrib.get('number'), enum_extends_blacklist=enum_extends_blacklist)
+            enums_to_add, enum_extensions = extract_enums(root, require, enum_extensions, extension_number=extension.attrib.get('number'), enum_extends_blacklist=enum_extends_blacklist)
             subsetEnums += enums_to_add
 
         subsets.append(APISubset(name, subsetTypes, subsetEnums, subsetCommands))

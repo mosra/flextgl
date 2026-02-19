@@ -1,0 +1,11 @@
+version 1.4 vulkan
+
+# Defines the VkBufferUsageFlagBits2 enum, which needs 64-bit literals, thus
+# `1ull << N` used for all values. Version 1.4 then extends this with
+# VK_BUFFER_USAGE_2_SHADER_DEVICE_ADDRESS_BIT, which should also have
+# `1ull << N` used
+extension KHR_maintenance5 optional
+
+begin functions
+    CreateBuffer
+end functions
