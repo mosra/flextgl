@@ -873,8 +873,6 @@ def resolve_type_dependencies(subsets, requiredTypes, types):
 
     types_from_subsets = set()
     for subset in subsets:
-        if subset.name == 'VK_KHR_copy_commands2':
-            print(subset.types)
         types_from_subsets |= set(subset.types)
 
 
