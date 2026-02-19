@@ -816,10 +816,19 @@ def generate_enums(subsets, requiredEnums, enums, version):
     # Vulkan enum values can alias each other, ensure that the alias source is
     # pulled in as well. Assume there's no recursive dependency.
     for subset in subsets:
-        for enumName, _ in subset.enums:
+        for enumName, enumValue in subset.enums:
+            # If the enum itself is among parsed enums, add it as required
             if enumName in enums and enums[enumName] in enums:
                 requiredEnums.add(enums[enumName])
                 assert enums[enums[enumName]] not in enums
+            # Otherwise, if the enum value (i.e., an alias) is among parsed
+            # enums, add that. This is the case with e.g. VK_LUID_SIZE_EXT,
+            # which used to be present in the `<enums name="API Constants"`
+            # section already, but now it isn't and there's just VK_LUID_SIZE,
+            # and then an alias from VK_LUID_SIZE_EXT defined by an extension.
+            elif enumValue in enums:
+                requiredEnums.add(enumValue)
+                assert enums[enumValue] not in enums
 
     enumsDecl = ''
 
