@@ -729,14 +729,15 @@ def parse_xml_extensions(root, extensions, enum_extensions, feature_set, version
         subsetEnums = []
         subsetCommands = []
 
-        # At least in Vulkan 1.1.124, VK_KHR_sampler_ycbcr_conversion (which is
-        # promoted to 1.1) lists an extension to VkDebugReportObjectTypeEXT
+        # In Vulkan 1.1.124 to 1.3.204, VK_KHR_sampler_ycbcr_conversion (which
+        # is promoted to 1.1) lists an extension to VkDebugReportObjectTypeEXT
         # in a general <require> and then again (properly) in
         # <require extension="VK_EXT_debug_report">. If VK_EXT_debug_report is
         # not requested, that causes an assert. To circumvent that, add all
         # type extensions which aren't requested to a blacklist to ignore
         # later. See test_generate.VkDuplicateExtensionInteraction for a test
         # case.
+        # TODO: doesn't seem to be in 1.4.343 anymore, remove eventually
         enum_extends_blacklist = set()
         for require in extension.findall('./require[@extension]'):
             # The extended extension is requested, no blaclisting

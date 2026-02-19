@@ -2,7 +2,8 @@ version 1.1.124 vulkan
 
 # This one has an optional dependency on VK_EXT_debug_report, but accidentally
 # listed twice, once without the extension listed. It shouldn't die with an
-# assert.
+# assert. Search for KHR_sampler_ycbcr_conversion in flext.py for further
+# details.
 extension KHR_sampler_ycbcr_conversion optional
 
 begin functions
